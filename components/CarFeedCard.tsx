@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   FlatList,
+  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -15,9 +16,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { ChevronLeft, ChevronRight, Fuel, Gauge, Heart, Joystick, MapPin } from 'lucide-react-native';
 import { Colors } from '../constants/colors';
-import type { Car } from '../types/car';
+import type { Car, Photo } from '../types/car';
 import { formatKm, formatPrice } from '../utils/format';
 import ActionButtons from './ActionButtons';
+
+// Commons serves fixed thumbnail widths; a tiny one is plenty for the blurred fill.
+const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
 
 const NATIVE_DRIVER = Platform.OS !== 'web';
 const DOUBLE_TAP_MS = 280;
@@ -53,7 +57,7 @@ function CarFeedCard({
   onDoubleTapFavorite,
 }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0);
-  const listRef = useRef<FlatList<string>>(null);
+  const listRef = useRef<FlatList<Photo>>(null);
   const lastTap = useRef(0);
 
   const reveal = useRef(new Animated.Value(0)).current;
@@ -96,7 +100,7 @@ function CarFeedCard({
   };
 
   const goTo = (i: number) => {
-    const next = Math.max(0, Math.min(car.images.length - 1, i));
+    const next = Math.max(0, Math.min(car.photos.length - 1, i));
     listRef.current?.scrollToOffset({ offset: next * width, animated: true });
     setPhotoIndex(next);
   };
@@ -109,8 +113,8 @@ function CarFeedCard({
     <View style={{ width, height, backgroundColor: Colors.navy }}>
       <FlatList
         ref={listRef}
-        data={car.images}
-        keyExtractor={(uri) => uri}
+        data={car.photos}
+        keyExtractor={(p) => p.uri}
         horizontal
         pagingEnabled
         nestedScrollEnabled
@@ -120,10 +124,19 @@ function CarFeedCard({
         getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
         renderItem={({ item }) => (
           <Pressable onPress={handlePhotoPress} style={{ width, height }}>
+            {/* Listing photos are landscape: blurred fill behind, whole car in front. */}
             <Image
-              source={{ uri: item }}
+              source={{ uri: smallThumb(item.uri) }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
+              blurRadius={28}
+              cachePolicy="memory-disk"
+            />
+            <View style={styles.dim} />
+            <Image
+              source={{ uri: item.uri }}
+              style={[StyleSheet.absoluteFill, { bottom: height * 0.12 }]}
+              contentFit="contain"
               transition={250}
               cachePolicy="memory-disk"
             />
@@ -143,22 +156,37 @@ function CarFeedCard({
         style={[styles.bottomShade, { height: height * 0.55 }]}
       />
 
-      {car.images.length > 1 && (
+      {car.photos.length > 1 && (
         <View style={[styles.counter, { top: topOffset + 8 }]} pointerEvents="none">
           <Text style={styles.counterText}>
-            {photoIndex + 1}/{car.images.length}
+            {photoIndex + 1}/{car.photos.length}
           </Text>
         </View>
       )}
 
-      {Platform.OS === 'web' && car.images.length > 1 && (
+      {car.photos[photoIndex]?.author && (
+        <Pressable
+          style={[styles.credit, { top: topOffset + 8 }]}
+          onPress={() => {
+            const src = car.photos[photoIndex]?.source;
+            if (src) Linking.openURL(src);
+          }}
+          hitSlop={6}
+        >
+          <Text style={styles.creditText} numberOfLines={1}>
+            © {car.photos[photoIndex].author} · {car.photos[photoIndex].license}
+          </Text>
+        </Pressable>
+      )}
+
+      {Platform.OS === 'web' && car.photos.length > 1 && (
         <>
           {photoIndex > 0 && (
             <Pressable style={[styles.arrow, { left: 10 }]} onPress={() => goTo(photoIndex - 1)}>
               <ChevronLeft size={22} color={Colors.white} />
             </Pressable>
           )}
-          {photoIndex < car.images.length - 1 && (
+          {photoIndex < car.photos.length - 1 && (
             <Pressable style={[styles.arrow, { right: 10 }]} onPress={() => goTo(photoIndex + 1)}>
               <ChevronRight size={22} color={Colors.white} />
             </Pressable>
@@ -179,9 +207,9 @@ function CarFeedCard({
       >
         <View style={styles.infoRow} pointerEvents="box-none">
           <View style={styles.info} pointerEvents="none">
-            {car.images.length > 1 && (
+            {car.photos.length > 1 && (
               <View style={styles.dots}>
-                {car.images.map((_, i) => (
+                {car.photos.map((_, i) => (
                   <View key={i} style={[styles.dot, i === photoIndex && styles.dotActive]} />
                 ))}
               </View>
@@ -228,6 +256,17 @@ function CarFeedCard({
 export default memo(CarFeedCard);
 
 const styles = StyleSheet.create({
+  dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,20,38,0.35)' },
+  credit: {
+    position: 'absolute',
+    left: 14,
+    maxWidth: '62%',
+    backgroundColor: 'rgba(11,20,38,0.45)',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  creditText: { color: 'rgba(255,255,255,0.6)', fontSize: 10 },
   topShade: { position: 'absolute', top: 0, left: 0, right: 0 },
   bottomShade: { position: 'absolute', bottom: 0, left: 0, right: 0 },
   counter: {

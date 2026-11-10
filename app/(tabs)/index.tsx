@@ -108,9 +108,7 @@ export default function FeedScreen() {
         onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - insets.top)}
         pointerEvents="box-none"
       >
-        <Text style={styles.logo}>
-          Mashin<Text style={{ color: Colors.amber }}>am</Text>
-        </Text>
+        <Text style={styles.logo}>Mashinam</Text>
         <FilterBar brands={brands} filters={filters} onChange={setFilters} resultCount={visible.length} />
       </View>
     </View>

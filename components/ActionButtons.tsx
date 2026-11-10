@@ -3,8 +3,10 @@ import { Alert, Animated, Linking, Platform, Pressable, StyleSheet, Text, View }
 import * as Haptics from 'expo-haptics';
 import { MessageCircle, Phone } from 'lucide-react-native';
 import { Colors } from '../constants/colors';
+import { DEMO_MODE } from '../constants/config';
 import type { Car } from '../types/car';
 import { formatPrice } from '../utils/format';
+import { showDemoContact } from './DemoContactModal';
 
 function tap() {
   if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -24,11 +26,13 @@ export function openWhatsApp(car: Car) {
     `Merhaba, ilanınızdaki araç için yazıyorum: ` +
     `${car.brand} ${car.model} • ${car.year} (${formatPrice(car.priceUsd)}). Hâlâ satılık mı?`;
   tap();
+  if (DEMO_MODE) return showDemoContact({ kind: 'whatsapp', car, message: text });
   open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`);
 }
 
 export function callSeller(car: Car) {
   tap();
+  if (DEMO_MODE) return showDemoContact({ kind: 'call', car, message: '' });
   open(`tel:${car.sellerPhone}`);
 }
 

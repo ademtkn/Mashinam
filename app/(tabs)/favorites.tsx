@@ -45,7 +45,7 @@ export default function FavoritesScreen() {
           contentContainerStyle={{ padding: 16, gap: 12 }}
           renderItem={({ item }) => (
             <View style={styles.row}>
-              <Image source={{ uri: item.images[0] }} style={styles.thumb} contentFit="cover" />
+              <Image source={{ uri: item.photos[0].uri }} style={styles.thumb} contentFit="cover" />
               <View style={styles.info}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item.brand} {item.model} • {item.year}

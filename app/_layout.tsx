@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { FavoritesProvider } from '../context/FavoritesContext';
+import DemoContactModal from '../components/DemoContactModal';
 
 export default function RootLayout() {
   return (
@@ -16,6 +17,7 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.navy } }} />
           </View>
         </View>
+        <DemoContactModal />
       </FavoritesProvider>
     </SafeAreaProvider>
   );
