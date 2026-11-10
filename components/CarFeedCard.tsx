@@ -69,9 +69,9 @@ function CarFeedCard({
     if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
   }, []);
 
-  const reveal = useRef(new Animated.Value(0)).current;
-  const burst = useRef(new Animated.Value(0)).current;
-  const heartScale = useRef(new Animated.Value(1)).current;
+  const reveal = useState(() => new Animated.Value(0))[0];
+  const burst = useState(() => new Animated.Value(0))[0];
+  const heartScale = useState(() => new Animated.Value(1))[0];
 
   // Info layer slides in each time the card becomes the visible one.
   useEffect(() => {
@@ -151,20 +151,21 @@ function CarFeedCard({
             />
             <View style={styles.dim} />
             {item.video ? (
-              <View style={[StyleSheet.absoluteFill, { bottom: height * 0.12 }]} pointerEvents="none">
+              <View style={[StyleSheet.absoluteFill, !item.fullBleed && { bottom: height * 0.12 }]} pointerEvents="none">
                 <FeedVideo
                   sources={item.video}
                   poster={item.uri}
                   active={isActive && index === photoIndex}
                   muted={muted}
+                  cover={item.fullBleed}
                   onProgress={index === photoIndex ? setProgress : undefined}
                 />
               </View>
             ) : (
               <Image
                 source={{ uri: item.uri }}
-                style={[StyleSheet.absoluteFill, { bottom: height * 0.12 }]}
-                contentFit="contain"
+                style={[StyleSheet.absoluteFill, !item.fullBleed && { bottom: height * 0.12 }]}
+                contentFit={item.fullBleed ? 'cover' : 'contain'}
                 transition={250}
                 cachePolicy="memory-disk"
               />

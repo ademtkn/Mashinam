@@ -1,4 +1,5 @@
 import { mockCars } from '../data/mockCars';
+import { videoCars } from '../data/videoCars';
 import type { Car, CarFilters, PriceRangeId } from '../types/car';
 import { shuffle } from '../utils/shuffle';
 
@@ -15,7 +16,7 @@ export const PRICE_RANGES: { id: PriceRangeId; label: string; min: number; max: 
 // The feed is shown in a fresh random order on every load.
 export async function fetchCars(): Promise<Car[]> {
   await new Promise((r) => setTimeout(r, 350));
-  return shuffle(mockCars);
+  return shuffle([...mockCars, ...videoCars]);
 }
 
 export function isDefaultFilters(f: CarFilters) {

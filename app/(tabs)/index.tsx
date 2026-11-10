@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -11,13 +13,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
-import { SearchX } from 'lucide-react-native';
+import { RefreshCw, SearchX } from 'lucide-react-native';
 import CarFeedCard from '../../components/CarFeedCard';
 import FilterBar from '../../components/FilterBar';
 import { Colors } from '../../constants/colors';
 import { useFavorites } from '../../context/FavoritesContext';
 import { fetchCars, filterCars, getBrands, isDefaultFilters } from '../../services/carService';
-import { shuffle } from '../../utils/shuffle';
+import { PULL_MAX, PULL_THRESHOLD, usePullToRefresh } from '../../hooks/usePullToRefresh';
 import type { Car, CarFilters } from '../../types/car';
 
 const DEFAULT_FILTERS: CarFilters = { brand: null, priceRange: 'all' };
@@ -38,32 +40,51 @@ export default function FeedScreen() {
     fetchCars().then(setCars);
   }, []);
 
-  // "Refresh": with no filter applied, deal the listings in a new random order.
-  // With a filter applied, keep the order and just go back to the top.
-  const refresh = useCallback(() => {
-    if (isDefaultFilters(filters)) setCars((prev) => (prev ? shuffle(prev) : prev));
-    else listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  const filtersRef = useRef(filters);
+  useEffect(() => {
+    filtersRef.current = filters;
   }, [filters]);
+  const scrollY = useRef(0);
+
+  // Refresh = reload the listings. With no filter applied they come back in a
+  // new random order; with a filter applied the order is kept. Either way the
+  // feed returns to the top.
+  const reload = useCallback(async () => {
+    const fresh = await fetchCars();
+    if (isDefaultFilters(filtersRef.current)) setCars(fresh);
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, []);
+
+  const { pull, refreshing, refreshNow, touchHandlers } = usePullToRefresh(reload, {
+    isAtTop: () => scrollY.current <= 2,
+    minStartY: insets.top + barHeight,
+  });
 
   // Tapping the Keşfet tab while already on it refreshes, like most feed apps.
   useEffect(() => {
     return navigation.addListener('tabPress' as never, () => {
-      if (navigation.isFocused()) refresh();
+      if (navigation.isFocused()) refreshNow();
     });
-  }, [navigation, refresh]);
+  }, [navigation, refreshNow]);
 
   const brands = useMemo(() => getBrands(cars ?? []), [cars]);
   const visible = useMemo(() => filterCars(cars ?? [], filters), [cars, filters]);
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    setActiveId(visible[0]?.id ?? null);
   }, [visible]);
 
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: { item: Car; isViewable: boolean }[] }) => {
-    const first = viewableItems.find((v) => v.isViewable);
-    if (first?.item) setActiveId(first.item.id);
-  }).current;
+  // Until the list reports what's on screen (or after the list changes), the first card is the active one.
+  const currentId = visible.some((c) => c.id === activeId) ? activeId : (visible[0]?.id ?? null);
+
+  // FlatList requires this callback to keep the same identity for its lifetime.
+  const [onViewableItemsChanged] = useState(
+    () =>
+      ({ viewableItems }: { viewableItems: { item: Car; isViewable: boolean }[] }) => {
+        const first = viewableItems.find((v) => v.isViewable);
+        if (first?.item) setActiveId(first.item.id);
+      },
+  );
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -77,17 +98,17 @@ export default function FeedScreen() {
         width={size.width}
         height={size.height}
         topOffset={insets.top + barHeight}
-        isActive={item.id === activeId}
+        isActive={item.id === currentId}
         isFavorite={isFavorite(item.id)}
         onToggleFavorite={toggle}
         onDoubleTapFavorite={add}
       />
     ),
-    [size, insets.top, barHeight, activeId, isFavorite, toggle, add],
+    [size, insets.top, barHeight, currentId, isFavorite, toggle, add],
   );
 
   return (
-    <View style={styles.container} onLayout={onLayout}>
+    <View style={styles.container} onLayout={onLayout} {...(Platform.OS === 'web' ? touchHandlers : null)}>
       {cars === null || size.height === 0 ? (
         <View style={styles.center}>
           <ActivityIndicator color={Colors.amber} size="large" />
@@ -101,8 +122,18 @@ export default function FeedScreen() {
           </Pressable>
         </View>
       ) : (
+        <Animated.View
+          style={[
+            styles.flex,
+            { transform: [{ translateY: pull.interpolate({ inputRange: [0, PULL_MAX], outputRange: [0, PULL_MAX * 0.6] }) }] },
+          ]}
+        >
         <FlatList
           ref={listRef}
+          onScroll={(e) => {
+            scrollY.current = e.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
           data={visible}
           keyExtractor={(c) => c.id}
           renderItem={renderItem}
@@ -113,13 +144,48 @@ export default function FeedScreen() {
           snapToAlignment="start"
           getItemLayout={(_, index) => ({ length: size.height, offset: size.height * index, index })}
           onViewableItemsChanged={onViewableItemsChanged}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={Colors.amber} />}
+          refreshControl={
+            Platform.OS === 'web' ? undefined : (
+              <RefreshControl refreshing={refreshing} onRefresh={refreshNow} tintColor={Colors.amber} />
+            )
+          }
           viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
           windowSize={3}
           initialNumToRender={2}
           maxToRenderPerBatch={2}
           removeClippedSubviews
         />
+        </Animated.View>
+      )}
+
+      {Platform.OS === 'web' && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.pullIndicator,
+            {
+              top: insets.top + barHeight,
+              opacity: pull.interpolate({ inputRange: [0, 25], outputRange: [0, 1], extrapolate: 'clamp' }),
+              transform: [
+                { translateY: pull.interpolate({ inputRange: [0, PULL_MAX], outputRange: [-30, PULL_MAX * 0.6] }) },
+              ],
+            },
+          ]}
+        >
+          {refreshing ? (
+            <ActivityIndicator color={Colors.navy} />
+          ) : (
+            <Animated.View
+              style={{
+                transform: [
+                  { rotate: pull.interpolate({ inputRange: [0, PULL_THRESHOLD], outputRange: ['0deg', '300deg'], extrapolate: 'clamp' }) },
+                ],
+              }}
+            >
+              <RefreshCw size={20} color={Colors.navy} strokeWidth={2.6} />
+            </Animated.View>
+          )}
+        </Animated.View>
       )}
 
       <View
@@ -127,7 +193,7 @@ export default function FeedScreen() {
         onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - insets.top)}
         pointerEvents="box-none"
       >
-        <Pressable onPress={refresh} style={styles.logoWrap} hitSlop={8}>
+        <Pressable onPress={refreshNow} style={styles.logoWrap} hitSlop={8}>
           <Text style={styles.logo}>Mashinam</Text>
         </Pressable>
         <FilterBar brands={brands} filters={filters} onChange={setFilters} resultCount={visible.length} />
@@ -138,6 +204,21 @@ export default function FeedScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.navy },
+  flex: { flex: 1 },
+  pullIndicator: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.amber,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 },
   emptyTitle: { color: Colors.white, fontSize: 17, fontWeight: '700' },
   reset: { backgroundColor: Colors.amber, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14 },

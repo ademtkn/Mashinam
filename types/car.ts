@@ -12,6 +12,8 @@ export interface VideoSource {
 export interface Photo {
   uri: string;
   video?: VideoSource[];
+  // Portrait (9:16) media fills the whole screen like a reel instead of being letterboxed.
+  fullBleed?: boolean;
   // Credit fields are only needed for licensed stock photos (demo data).
   author?: string;
   license?: string;

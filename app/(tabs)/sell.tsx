@@ -48,7 +48,7 @@ export default function SellScreen() {
         </Pressable>
         {sent && (
           <Text style={styles.note}>
-            Prototip modu: ilan yükleme Aşama 2'de Supabase ile bağlanacak.
+            Prototip modu: ilan yükleme Aşama 2’de Supabase ile bağlanacak.
           </Text>
         )}
       </ScrollView>

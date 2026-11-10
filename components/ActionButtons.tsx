@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState } from 'react';
 import { Alert, Animated, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { MessageCircle, Phone } from 'lucide-react-native';
@@ -49,7 +49,7 @@ function BigButton({
   icon: React.ReactNode;
   onPress: () => void;
 }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useState(() => new Animated.Value(1))[0];
   const to = (v: number) =>
     Animated.spring(scale, { toValue: v, useNativeDriver: Platform.OS !== 'web', speed: 40, bounciness: 8 }).start();
 

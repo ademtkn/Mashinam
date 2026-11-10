@@ -35,7 +35,7 @@ export default function FavoritesScreen() {
             Akışta bir fotoğrafa çift dokun ya da kalp ikonuna bas.
           </Text>
           <Pressable style={styles.cta} onPress={() => router.navigate('/')}>
-            <Text style={styles.ctaText}>Keşfet'e git</Text>
+            <Text style={styles.ctaText}>Keşfet’e git</Text>
           </Pressable>
         </View>
       ) : (

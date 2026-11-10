@@ -10,7 +10,7 @@ function pickSource(sources: FeedVideoProps['sources']) {
   return sources[0].uri;
 }
 
-export default function FeedVideo({ sources, active, muted, onProgress }: FeedVideoProps) {
+export default function FeedVideo({ sources, active, muted, cover, onProgress }: FeedVideoProps) {
   const player = useVideoPlayer(pickSource(sources), (p) => {
     p.loop = true;
     p.muted = true;
@@ -23,16 +23,18 @@ export default function FeedVideo({ sources, active, muted, onProgress }: FeedVi
   }, [active, player]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability -- expo-video players are configured by assignment
     player.muted = muted;
   }, [muted, player]);
 
   const time = useEvent(player, 'timeUpdate');
   useEffect(() => {
     if (!time) return;
+    // eslint-disable-next-line react-hooks/immutability -- expo-video players are configured by assignment
     if (time.currentTime >= MAX_VIDEO_SECONDS) player.currentTime = 0;
     const total = Math.min(player.duration || MAX_VIDEO_SECONDS, MAX_VIDEO_SECONDS);
     onProgress?.(time.currentTime / total);
   }, [time, player, onProgress]);
 
-  return <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="contain" nativeControls={false} />;
+  return <VideoView player={player} style={StyleSheet.absoluteFill} contentFit={cover ? 'cover' : 'contain'} nativeControls={false} />;
 }

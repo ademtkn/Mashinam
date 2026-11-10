@@ -8,5 +8,6 @@ export interface FeedVideoProps {
   poster?: string;
   active: boolean; // play only while this card and this page are on screen
   muted: boolean;
+  cover?: boolean; // fill the screen (portrait clips) instead of letterboxing
   onProgress?: (fraction: number) => void;
 }
