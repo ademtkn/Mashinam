@@ -14,11 +14,12 @@ import {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { ChevronLeft, ChevronRight, Fuel, Gauge, Heart, Joystick, MapPin } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Fuel, Gauge, Heart, Joystick, MapPin, Play, Volume2, VolumeX } from 'lucide-react-native';
 import { Colors } from '../constants/colors';
 import type { Car, Photo } from '../types/car';
 import { formatKm, formatPrice } from '../utils/format';
 import ActionButtons from './ActionButtons';
+import FeedVideo from './FeedVideo';
 
 // Commons serves fixed thumbnail widths; a tiny one is plenty for the blurred fill.
 const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
@@ -59,6 +60,14 @@ function CarFeedCard({
   const [photoIndex, setPhotoIndex] = useState(0);
   const listRef = useRef<FlatList<Photo>>(null);
   const lastTap = useRef(0);
+  const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [muted, setMuted] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const currentIsVideo = !!car.photos[photoIndex]?.video;
+
+  useEffect(() => () => {
+    if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
+  }, []);
 
   const reveal = useRef(new Animated.Value(0)).current;
   const burst = useRef(new Animated.Value(0)).current;
@@ -82,6 +91,7 @@ function CarFeedCard({
     const now = Date.now();
     if (now - lastTap.current < DOUBLE_TAP_MS) {
       lastTap.current = 0;
+      if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
       onDoubleTapFavorite(car.id);
       if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       popHeart();
@@ -92,17 +102,23 @@ function CarFeedCard({
       ]).start();
     } else {
       lastTap.current = now;
+      // Like Reels: a single tap on a video toggles sound (after ruling out a double tap).
+      if (currentIsVideo) {
+        singleTapTimer.current = setTimeout(() => setMuted((m) => !m), DOUBLE_TAP_MS);
+      }
     }
-  }, [burst, car.id, onDoubleTapFavorite, popHeart]);
+  }, [burst, car.id, currentIsVideo, onDoubleTapFavorite, popHeart]);
 
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     setPhotoIndex(Math.round(e.nativeEvent.contentOffset.x / width));
+    setProgress(0);
   };
 
   const goTo = (i: number) => {
     const next = Math.max(0, Math.min(car.photos.length - 1, i));
     listRef.current?.scrollToOffset({ offset: next * width, animated: true });
     setPhotoIndex(next);
+    setProgress(0);
   };
 
   const translateY = reveal.interpolate({ inputRange: [0, 1], outputRange: [24, 0] });
@@ -122,7 +138,8 @@ function CarFeedCard({
         onMomentumScrollEnd={onScrollEnd}
         onScrollEndDrag={Platform.OS === 'web' ? onScrollEnd : undefined}
         getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
-        renderItem={({ item }) => (
+        extraData={`${photoIndex}-${isActive}-${muted}`}
+        renderItem={({ item, index }) => (
           <Pressable onPress={handlePhotoPress} style={{ width, height }}>
             {/* Listing photos are landscape: blurred fill behind, whole car in front. */}
             <Image
@@ -133,13 +150,25 @@ function CarFeedCard({
               cachePolicy="memory-disk"
             />
             <View style={styles.dim} />
-            <Image
-              source={{ uri: item.uri }}
-              style={[StyleSheet.absoluteFill, { bottom: height * 0.12 }]}
-              contentFit="contain"
-              transition={250}
-              cachePolicy="memory-disk"
-            />
+            {item.video ? (
+              <View style={[StyleSheet.absoluteFill, { bottom: height * 0.12 }]} pointerEvents="none">
+                <FeedVideo
+                  sources={item.video}
+                  poster={item.uri}
+                  active={isActive && index === photoIndex}
+                  muted={muted}
+                  onProgress={index === photoIndex ? setProgress : undefined}
+                />
+              </View>
+            ) : (
+              <Image
+                source={{ uri: item.uri }}
+                style={[StyleSheet.absoluteFill, { bottom: height * 0.12 }]}
+                contentFit="contain"
+                transition={250}
+                cachePolicy="memory-disk"
+              />
+            )}
           </Pressable>
         )}
       />
@@ -155,6 +184,30 @@ function CarFeedCard({
         locations={[0, 0.4, 1]}
         style={[styles.bottomShade, { height: height * 0.55 }]}
       />
+
+      {currentIsVideo && (
+        <>
+          <View style={[styles.progressTrack, { top: topOffset }]} pointerEvents="none">
+            <View style={[styles.progressFill, { width: `${Math.min(progress, 1) * 100}%` }]} />
+          </View>
+          <Pressable
+            style={[styles.muteButton, { top: topOffset + 44 }]}
+            onPress={() => setMuted((m) => !m)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={muted ? 'Sesi aç' : 'Sesi kapat'}
+          >
+            {muted ? <VolumeX size={18} color={Colors.white} /> : <Volume2 size={18} color={Colors.white} />}
+          </Pressable>
+        </>
+      )}
+
+      {car.photos.some((p) => p.video) && !currentIsVideo && (
+        <View style={[styles.videoBadge, { top: topOffset + 44 }]} pointerEvents="none">
+          <Play size={12} color={Colors.navy} fill={Colors.navy} />
+          <Text style={styles.videoBadgeText}>Video</Text>
+        </View>
+      )}
 
       {car.photos.length > 1 && (
         <View style={[styles.counter, { top: topOffset + 8 }]} pointerEvents="none">
@@ -256,6 +309,38 @@ function CarFeedCard({
 export default memo(CarFeedCard);
 
 const styles = StyleSheet.create({
+  progressTrack: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    overflow: 'hidden',
+  },
+  progressFill: { height: 3, backgroundColor: Colors.amber },
+  muteButton: {
+    position: 'absolute',
+    right: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.glass,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoBadge: {
+    position: 'absolute',
+    right: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.amber,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  videoBadgeText: { color: Colors.navy, fontSize: 11, fontWeight: '800' },
   dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,20,38,0.35)' },
   credit: {
     position: 'absolute',

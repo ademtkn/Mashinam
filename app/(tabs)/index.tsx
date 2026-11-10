@@ -3,18 +3,21 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
   type LayoutChangeEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from 'expo-router';
 import { SearchX } from 'lucide-react-native';
 import CarFeedCard from '../../components/CarFeedCard';
 import FilterBar from '../../components/FilterBar';
 import { Colors } from '../../constants/colors';
 import { useFavorites } from '../../context/FavoritesContext';
-import { fetchCars, filterCars, getBrands } from '../../services/carService';
+import { fetchCars, filterCars, getBrands, isDefaultFilters } from '../../services/carService';
+import { shuffle } from '../../utils/shuffle';
 import type { Car, CarFilters } from '../../types/car';
 
 const DEFAULT_FILTERS: CarFilters = { brand: null, priceRange: 'all' };
@@ -29,10 +32,25 @@ export default function FeedScreen() {
   const [barHeight, setBarHeight] = useState(0);
   const [activeId, setActiveId] = useState<string | null>(null);
   const listRef = useRef<FlatList<Car>>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchCars().then(setCars);
   }, []);
+
+  // "Refresh": with no filter applied, deal the listings in a new random order.
+  // With a filter applied, keep the order and just go back to the top.
+  const refresh = useCallback(() => {
+    if (isDefaultFilters(filters)) setCars((prev) => (prev ? shuffle(prev) : prev));
+    else listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [filters]);
+
+  // Tapping the Keşfet tab while already on it refreshes, like most feed apps.
+  useEffect(() => {
+    return navigation.addListener('tabPress' as never, () => {
+      if (navigation.isFocused()) refresh();
+    });
+  }, [navigation, refresh]);
 
   const brands = useMemo(() => getBrands(cars ?? []), [cars]);
   const visible = useMemo(() => filterCars(cars ?? [], filters), [cars, filters]);
@@ -95,6 +113,7 @@ export default function FeedScreen() {
           snapToAlignment="start"
           getItemLayout={(_, index) => ({ length: size.height, offset: size.height * index, index })}
           onViewableItemsChanged={onViewableItemsChanged}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={Colors.amber} />}
           viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
           windowSize={3}
           initialNumToRender={2}
@@ -108,7 +127,9 @@ export default function FeedScreen() {
         onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - insets.top)}
         pointerEvents="box-none"
       >
-        <Text style={styles.logo}>Mashinam</Text>
+        <Pressable onPress={refresh} style={styles.logoWrap} hitSlop={8}>
+          <Text style={styles.logo}>Mashinam</Text>
+        </Pressable>
         <FilterBar brands={brands} filters={filters} onChange={setFilters} resultCount={visible.length} />
       </View>
     </View>
@@ -122,5 +143,6 @@ const styles = StyleSheet.create({
   reset: { backgroundColor: Colors.amber, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14 },
   resetText: { color: Colors.navy, fontWeight: '800' },
   bar: { position: 'absolute', top: 0, left: 0, right: 0, paddingBottom: 8, gap: 8 },
+  logoWrap: { alignSelf: 'flex-start' },
   logo: { color: Colors.white, fontSize: 22, fontWeight: '900', letterSpacing: -0.5, paddingHorizontal: 16 },
 });

@@ -1,5 +1,6 @@
 import { mockCars } from '../data/mockCars';
 import type { Car, CarFilters, PriceRangeId } from '../types/car';
+import { shuffle } from '../utils/shuffle';
 
 // Phase 2: replace the body of these functions with Supabase queries.
 // Screens only talk to this module, so nothing else needs to change.
@@ -11,9 +12,14 @@ export const PRICE_RANGES: { id: PriceRangeId; label: string; min: number; max: 
   { id: 'gt30', label: '30K $ +', min: 30000, max: Infinity },
 ];
 
+// The feed is shown in a fresh random order on every load.
 export async function fetchCars(): Promise<Car[]> {
   await new Promise((r) => setTimeout(r, 350));
-  return [...mockCars].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return shuffle(mockCars);
+}
+
+export function isDefaultFilters(f: CarFilters) {
+  return f.brand === null && f.priceRange === 'all';
 }
 
 export function getBrands(cars: Car[]): string[] {

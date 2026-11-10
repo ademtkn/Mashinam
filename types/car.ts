@@ -2,8 +2,16 @@ export type FuelType = 'Benzin' | 'Dizel' | 'Hibrit' | 'Gaz/Benzin' | 'Elektrik'
 export type Transmission = 'Otomatik' | 'Manuel';
 export type City = 'Bişkek' | 'Oş' | 'Karakol' | 'Celalabad' | 'Tokmok' | 'Narın' | 'Talas';
 
+export interface VideoSource {
+  uri: string;
+  mime: string; // e.g. 'video/webm', 'video/mp4', 'video/quicktime'
+}
+
+// One page of a listing's gallery: a photo, or a short (<= 40 s) video.
+// For videos, `uri` is the poster frame shown while loading.
 export interface Photo {
   uri: string;
+  video?: VideoSource[];
   // Credit fields are only needed for licensed stock photos (demo data).
   author?: string;
   license?: string;

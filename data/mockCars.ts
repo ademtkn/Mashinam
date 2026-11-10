@@ -950,4 +950,62 @@ export const mockCars: Car[] = [
     whatsappPhone: '+996555684482',
     createdAt: '2026-11-02T14:51:00Z',
   },
+  {
+    id: 'v1',
+    brand: 'Toyota',
+    model: 'Land Cruiser 70 (off-road)',
+    year: 1996,
+    priceUsd: 14500,
+    mileageKm: 385000,
+    fuel: 'Dizel',
+    transmission: 'Manuel',
+    city: 'Narın',
+    photos: [
+      {
+        uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e0/Toyota_Land_Cruiser_near_Dordogne_River_%284b%29_%28video%29.webm/960px--Toyota_Land_Cruiser_near_Dordogne_River_%284b%29_%28video%29.webm.jpg",
+        video: [
+          { uri: "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e0/Toyota_Land_Cruiser_near_Dordogne_River_%284b%29_%28video%29.webm/Toyota_Land_Cruiser_near_Dordogne_River_%284b%29_%28video%29.webm.480p.vp9.webm", mime: 'video/webm' },
+          { uri: "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e0/Toyota_Land_Cruiser_near_Dordogne_River_%284b%29_%28video%29.webm/Toyota_Land_Cruiser_near_Dordogne_River_%284b%29_%28video%29.webm.360p.mpeg4.mov", mime: 'video/quicktime' },
+        ],
+        author: "Cjp24", license: "CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Toyota_Land_Cruiser_near_Dordogne_River_(4b)_(video).webm",
+      },
+      {
+        uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Toyota_Land_Cruiser_%287%29_%28video%29.webm/960px--Toyota_Land_Cruiser_%287%29_%28video%29.webm.jpg",
+        video: [
+          { uri: "https://upload.wikimedia.org/wikipedia/commons/transcoded/0/05/Toyota_Land_Cruiser_%287%29_%28video%29.webm/Toyota_Land_Cruiser_%287%29_%28video%29.webm.480p.vp9.webm", mime: 'video/webm' },
+          { uri: "https://upload.wikimedia.org/wikipedia/commons/transcoded/0/05/Toyota_Land_Cruiser_%287%29_%28video%29.webm/Toyota_Land_Cruiser_%287%29_%28video%29.webm.360p.mpeg4.mov", mime: 'video/quicktime' },
+        ],
+        author: "Cjp24", license: "CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Toyota_Land_Cruiser_(7)_(video).webm",
+      },
+    ],
+    sellerName: 'Bolot',
+    sellerPhone: '+996707318452',
+    whatsappPhone: '+996707318452',
+    createdAt: '2026-11-10T18:20:00Z',
+  },
+  {
+    id: 'v2',
+    brand: 'Lada',
+    model: '2101 Jiguli',
+    year: 1982,
+    priceUsd: 1600,
+    mileageKm: 240000,
+    fuel: 'Benzin',
+    transmission: 'Manuel',
+    city: 'Oş',
+    photos: [
+      {
+        uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Starting_up_Lada_1200L_Zhiguli_Engine.webm/960px--Starting_up_Lada_1200L_Zhiguli_Engine.webm.jpg",
+        video: [
+          { uri: "https://upload.wikimedia.org/wikipedia/commons/transcoded/3/33/Starting_up_Lada_1200L_Zhiguli_Engine.webm/Starting_up_Lada_1200L_Zhiguli_Engine.webm.480p.vp9.webm", mime: 'video/webm' },
+          { uri: "https://upload.wikimedia.org/wikipedia/commons/transcoded/3/33/Starting_up_Lada_1200L_Zhiguli_Engine.webm/Starting_up_Lada_1200L_Zhiguli_Engine.webm.360p.mpeg4.mov", mime: 'video/quicktime' },
+        ],
+        author: "Antti Makkonen", license: "CC BY 3.0", source: "https://commons.wikimedia.org/wiki/File:Starting_up_Lada_1200L_Zhiguli_Engine.webm",
+      },
+    ],
+    sellerName: 'Almaz',
+    sellerPhone: '+996555614027',
+    whatsappPhone: '+996555614027',
+    createdAt: '2026-11-10T16:05:00Z',
+  },
 ];
