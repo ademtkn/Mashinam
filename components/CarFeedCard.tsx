@@ -33,6 +33,7 @@ interface Props {
   height: number;
   topOffset: number; // space taken by the floating filter bar
   isActive: boolean;
+  isNear?: boolean; // false = far from the viewport; render a cheap placeholder instead of media
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   onDoubleTapFavorite: (id: string) => void;
@@ -53,6 +54,7 @@ function CarFeedCard({
   height,
   topOffset,
   isActive,
+  isNear = true,
   isFavorite,
   onToggleFavorite,
   onDoubleTapFavorite,
@@ -125,6 +127,8 @@ function CarFeedCard({
   const burstScale = burst.interpolate({ inputRange: [0, 1, 2], outputRange: [0.3, 1, 1.25] });
   const burstOpacity = burst.interpolate({ inputRange: [0, 0.2, 1, 2], outputRange: [0, 1, 1, 0] });
 
+  if (!isNear) return <View style={{ width, height, backgroundColor: Colors.navy }} />;
+
   return (
     <View style={{ width, height, backgroundColor: Colors.navy }}>
       <FlatList
@@ -189,7 +193,7 @@ function CarFeedCard({
       {currentIsVideo && (
         <>
           <View style={[styles.progressTrack, { top: topOffset }]} pointerEvents="none">
-            <View style={[styles.progressFill, { width: `${Math.min(progress, 1) * 100}%` }]} />
+            <View style={[styles.progressFill, { transform: [{ scaleX: Math.min(progress, 1) }] }]} />
           </View>
           <Pressable
             style={[styles.muteButton, { top: topOffset + 44 }]}
@@ -319,7 +323,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.25)',
     overflow: 'hidden',
   },
-  progressFill: { height: 3, backgroundColor: Colors.amber },
+  progressFill: { width: '100%', height: 3, backgroundColor: Colors.amber, transformOrigin: 'left' },
   muteButton: {
     position: 'absolute',
     right: 14,

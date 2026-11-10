@@ -23,6 +23,11 @@ import { PULL_MAX, PULL_THRESHOLD, usePullToRefresh } from '../../hooks/usePullT
 import type { Car, CarFilters } from '../../types/car';
 
 const DEFAULT_FILTERS: CarFilters = { brand: null, priceRange: 'all' };
+const IS_WEB = Platform.OS === 'web';
+// On web, cards this far from the active one render as an empty placeholder.
+const NEAR_CARDS = 2;
+// How long the scroll position must stay still before the active card changes (web).
+const SETTLE_MS = 120;
 
 export default function FeedScreen() {
   const insets = useSafeAreaInsets();
@@ -45,6 +50,10 @@ export default function FeedScreen() {
     filtersRef.current = filters;
   }, [filters]);
   const scrollY = useRef(0);
+  const sizeRef = useRef(size);
+  useEffect(() => {
+    sizeRef.current = size;
+  }, [size]);
 
   // Refresh = reload the listings. With no filter applied they come back in a
   // new random order; with a filter applied the order is kept. Either way the
@@ -70,12 +79,36 @@ export default function FeedScreen() {
   const brands = useMemo(() => getBrands(cars ?? []), [cars]);
   const visible = useMemo(() => filterCars(cars ?? [], filters), [cars, filters]);
 
+  const visibleRef = useRef(visible);
   useEffect(() => {
+    visibleRef.current = visible;
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [visible]);
 
   // Until the list reports what's on screen (or after the list changes), the first card is the active one.
   const currentId = visible.some((c) => c.id === activeId) ? activeId : (visible[0]?.id ?? null);
+  const activeIndex = Math.max(0, visible.findIndex((c) => c.id === currentId));
+
+  // Web: the browser's CSS scroll-snap re-snaps to the nearest card whenever the
+  // list's DOM changes mid-swipe, which made the feed jump around on its own.
+  // So on web every card stays mounted (no virtualization) and the active card
+  // is only updated once the scroll position has settled.
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+  }, []);
+  const onScroll = useCallback((y: number) => {
+    scrollY.current = y;
+    if (!IS_WEB) return;
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      const h = sizeRef.current.height;
+      const list = visibleRef.current;
+      if (!h || list.length === 0) return;
+      const idx = Math.max(0, Math.min(list.length - 1, Math.round(y / h)));
+      setActiveId(list[idx].id);
+    }, SETTLE_MS);
+  }, []);
 
   // FlatList requires this callback to keep the same identity for its lifetime.
   const [onViewableItemsChanged] = useState(
@@ -92,19 +125,20 @@ export default function FeedScreen() {
   };
 
   const renderItem = useCallback(
-    ({ item }: { item: Car }) => (
+    ({ item, index }: { item: Car; index: number }) => (
       <CarFeedCard
         car={item}
         width={size.width}
         height={size.height}
         topOffset={insets.top + barHeight}
         isActive={item.id === currentId}
+        isNear={!IS_WEB || Math.abs(index - activeIndex) <= NEAR_CARDS}
         isFavorite={isFavorite(item.id)}
         onToggleFavorite={toggle}
         onDoubleTapFavorite={add}
       />
     ),
-    [size, insets.top, barHeight, currentId, isFavorite, toggle, add],
+    [size, insets.top, barHeight, currentId, activeIndex, isFavorite, toggle, add],
   );
 
   return (
@@ -130,9 +164,7 @@ export default function FeedScreen() {
         >
         <FlatList
           ref={listRef}
-          onScroll={(e) => {
-            scrollY.current = e.nativeEvent.contentOffset.y;
-          }}
+          onScroll={(e) => onScroll(e.nativeEvent.contentOffset.y)}
           scrollEventThrottle={16}
           data={visible}
           keyExtractor={(c) => c.id}
@@ -143,17 +175,17 @@ export default function FeedScreen() {
           snapToInterval={size.height}
           snapToAlignment="start"
           getItemLayout={(_, index) => ({ length: size.height, offset: size.height * index, index })}
-          onViewableItemsChanged={onViewableItemsChanged}
+          onViewableItemsChanged={IS_WEB ? undefined : onViewableItemsChanged}
           refreshControl={
             Platform.OS === 'web' ? undefined : (
               <RefreshControl refreshing={refreshing} onRefresh={refreshNow} tintColor={Colors.amber} />
             )
           }
-          viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
-          windowSize={3}
-          initialNumToRender={2}
-          maxToRenderPerBatch={2}
-          removeClippedSubviews
+          viewabilityConfig={IS_WEB ? undefined : { itemVisiblePercentThreshold: 60 }}
+          windowSize={IS_WEB ? 101 : 3}
+          initialNumToRender={IS_WEB ? visible.length : 2}
+          maxToRenderPerBatch={IS_WEB ? visible.length : 2}
+          removeClippedSubviews={!IS_WEB}
         />
         </Animated.View>
       )}

@@ -1,4 +1,5 @@
-// While the app only shows demo listings, the seller numbers are made up and
-// could belong to real people. In demo mode the WhatsApp / Call buttons show a
-// preview instead of contacting anyone. Set to false once real listings exist.
-export const DEMO_MODE = true;
+// Demo mode shows a preview sheet instead of really opening WhatsApp / the
+// dialer. It is off for now: every listing points at the test number
+// +996 502 00 19 03, so the buttons can be tried end to end.
+// Turn it back on if listings ever get numbers that could belong to strangers.
+export const DEMO_MODE = false;
