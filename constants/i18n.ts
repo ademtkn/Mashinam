@@ -1,0 +1,170 @@
+import type { City, FuelType, ImportSource, Transmission } from '../types/car';
+
+// Russian is the everyday language of car trade in Kyrgyzstan, so it's the
+// default; Kyrgyz and Turkish are one tap away. The Kyrgyz strings were
+// written by a non-native speaker and should be checked by one.
+export type Lang = 'ru' | 'ky' | 'tr';
+export const LANGS: Lang[] = ['ru', 'ky', 'tr'];
+export const DEFAULT_LANG: Lang = 'ru';
+export const LANG_LABEL: Record<Lang, string> = { ru: 'RU', ky: 'KG', tr: 'TR' };
+
+const STRINGS = {
+  ru: {
+    'tab.explore': 'Лента',
+    'tab.sell': 'Подать',
+    'tab.favorites': 'Избранное',
+    'filter.all': 'Все',
+    'filter.allPrices': 'Любая цена',
+    'filter.count': '{n} объявл.',
+    'feed.today': 'Сегодня {n} новых',
+    'feed.drops': '{n} подешевели',
+    'feed.seen': 'Всё ниже вы уже видели',
+    'feed.empty': 'Нет объявлений по этим фильтрам',
+    'feed.reset': 'Сбросить фильтры',
+    'btn.whatsapp': 'WhatsApp',
+    'btn.call': 'Позвонить',
+    'btn.share': 'Поделиться',
+    'card.new': 'НОВОЕ',
+    'card.priceDrop': 'ЦЕНА СНИЖЕНА',
+    'card.accidentFree': 'Без ДТП',
+    'card.hadAccident': 'Было ДТП',
+    'card.customs': 'Растаможен',
+    'card.noCustoms': 'Не растаможен',
+    'card.owners': '{n} влад.',
+    'card.video': 'Видео',
+    'wa.message': 'Здравствуйте! Пишу по вашему объявлению: {car} ({price}). Ещё продаётся?',
+    'share.text': 'Смотри: {car} за {price} на Mashinam — {url}',
+    'fav.title': 'Избранное',
+    'fav.emptyTitle': 'Пока ничего нет',
+    'fav.emptyText': 'Дважды коснитесь фото в ленте или нажмите на сердечко.',
+    'fav.cta': 'В ленту',
+    'sell.title': 'Подать объявление',
+    'sell.sub': 'Добавьте фото, заполните пару полей — и готово.',
+    'sell.photo': 'Добавить фото (до 10)',
+    'sell.brand': 'Марка',
+    'sell.model': 'Модель',
+    'sell.year': 'Год',
+    'sell.price': 'Цена ($)',
+    'sell.phone': 'Телефон / WhatsApp',
+    'sell.publish': 'Опубликовать',
+    'sell.note': 'Прототип: загрузка объявлений появится на этапе 2 (Supabase).',
+  },
+  ky: {
+    'tab.explore': 'Лента',
+    'tab.sell': 'Жарнама берүү',
+    'tab.favorites': 'Тандалмалар',
+    'filter.all': 'Баары',
+    'filter.allPrices': 'Бардык баалар',
+    'filter.count': '{n} жарнама',
+    'feed.today': 'Бүгүн {n} жаңы',
+    'feed.drops': '{n} арзандады',
+    'feed.seen': 'Төмөнкүлөрдүн баарын көрдүңүз',
+    'feed.empty': 'Бул фильтр боюнча жарнама жок',
+    'feed.reset': 'Фильтрди тазалоо',
+    'btn.whatsapp': 'WhatsApp',
+    'btn.call': 'Чалуу',
+    'btn.share': 'Бөлүшүү',
+    'card.new': 'ЖАҢЫ',
+    'card.priceDrop': 'БААСЫ ТҮШТҮ',
+    'card.accidentFree': 'Авариясыз',
+    'card.hadAccident': 'Аварияга кирген',
+    'card.customs': 'Бажыдан өткөн',
+    'card.noCustoms': 'Бажыдан өткөн эмес',
+    'card.owners': '{n} ээси',
+    'card.video': 'Видео',
+    'wa.message': 'Саламатсызбы! Жарнамаңыз боюнча жазып жатам: {car} ({price}). Дагы сатылабы?',
+    'share.text': 'Карачы: {car}, {price} — Mashinam: {url}',
+    'fav.title': 'Тандалмалар',
+    'fav.emptyTitle': 'Азырынча бош',
+    'fav.emptyText': 'Лентадагы сүрөттү эки жолу басыңыз же жүрөктү басыңыз.',
+    'fav.cta': 'Лентага',
+    'sell.title': 'Жарнама берүү',
+    'sell.sub': 'Сүрөт кошуп, бир нече маалымат жазыңыз — болду.',
+    'sell.photo': 'Сүрөт кошуу (10го чейин)',
+    'sell.brand': 'Марка',
+    'sell.model': 'Модель',
+    'sell.year': 'Жылы',
+    'sell.price': 'Баасы ($)',
+    'sell.phone': 'Телефон / WhatsApp',
+    'sell.publish': 'Жарыялоо',
+    'sell.note': 'Прототип: жарнама жүктөө 2-этапта (Supabase) кошулат.',
+  },
+  tr: {
+    'tab.explore': 'Keşfet',
+    'tab.sell': 'İlan Ver',
+    'tab.favorites': 'Favorilerim',
+    'filter.all': 'Tümü',
+    'filter.allPrices': 'Tüm fiyatlar',
+    'filter.count': '{n} ilan',
+    'feed.today': 'Bugün {n} yeni',
+    'feed.drops': '{n} fiyat düştü',
+    'feed.seen': 'Aşağıdakilerin hepsini gördün',
+    'feed.empty': 'Bu filtrelere uygun ilan yok',
+    'feed.reset': 'Filtreleri temizle',
+    'btn.whatsapp': 'WhatsApp',
+    'btn.call': 'Hemen Ara',
+    'btn.share': 'Paylaş',
+    'card.new': 'YENİ',
+    'card.priceDrop': 'FİYAT DÜŞTÜ',
+    'card.accidentFree': 'Kazasız',
+    'card.hadAccident': 'Kazalı',
+    'card.customs': 'Gümrüklü',
+    'card.noCustoms': 'Gümrüksüz',
+    'card.owners': '{n} sahibi',
+    'card.video': 'Video',
+    'wa.message': 'Merhaba, ilanınızdaki araç için yazıyorum: {car} ({price}). Hâlâ satılık mı?',
+    'share.text': 'Şuna bak: {car}, {price} — Mashinam: {url}',
+    'fav.title': 'Favorilerim',
+    'fav.emptyTitle': 'Henüz favori yok',
+    'fav.emptyText': 'Akışta bir fotoğrafa çift dokun ya da kalp ikonuna bas.',
+    'fav.cta': 'Keşfet’e git',
+    'sell.title': 'İlan Ver',
+    'sell.sub': 'Fotoğraf ekle, birkaç bilgi gir, yayında.',
+    'sell.photo': 'Fotoğraf ekle (en fazla 10)',
+    'sell.brand': 'Marka',
+    'sell.model': 'Model',
+    'sell.year': 'Yıl',
+    'sell.price': 'Fiyat ($)',
+    'sell.phone': 'Telefon / WhatsApp',
+    'sell.publish': 'Yayınla',
+    'sell.note': 'Prototip modu: ilan yükleme Aşama 2’de Supabase ile bağlanacak.',
+  },
+} as const;
+
+export type StringKey = keyof typeof STRINGS.ru;
+
+export function translate(lang: Lang, key: StringKey, params?: Record<string, string | number>): string {
+  let s: string = STRINGS[lang][key] ?? STRINGS.ru[key];
+  if (params) for (const [k, v] of Object.entries(params)) s = s.replace(`{${k}}`, String(v));
+  return s;
+}
+
+// Enum-like values are stored in Turkish in the data; shown in the chosen language.
+const FUEL: Record<Lang, Record<FuelType, string>> = {
+  ru: { Benzin: 'Бензин', Dizel: 'Дизель', Hibrit: 'Гибрид', 'Gaz/Benzin': 'Газ/бензин', Elektrik: 'Электро' },
+  ky: { Benzin: 'Бензин', Dizel: 'Дизель', Hibrit: 'Гибрид', 'Gaz/Benzin': 'Газ/бензин', Elektrik: 'Электр' },
+  tr: { Benzin: 'Benzin', Dizel: 'Dizel', Hibrit: 'Hibrit', 'Gaz/Benzin': 'Gaz/Benzin', Elektrik: 'Elektrik' },
+};
+const TRANSMISSION: Record<Lang, Record<Transmission, string>> = {
+  ru: { Otomatik: 'Автомат', Manuel: 'Механика' },
+  ky: { Otomatik: 'Автомат', Manuel: 'Механика' },
+  tr: { Otomatik: 'Otomatik', Manuel: 'Manuel' },
+};
+const CITY: Record<Lang, Record<City, string>> = {
+  ru: { Bişkek: 'Бишкек', Oş: 'Ош', Karakol: 'Каракол', Celalabad: 'Джалал-Абад', Tokmok: 'Токмок', Narın: 'Нарын', Talas: 'Талас' },
+  ky: { Bişkek: 'Бишкек', Oş: 'Ош', Karakol: 'Каракол', Celalabad: 'Жалал-Абад', Tokmok: 'Токмок', Narın: 'Нарын', Talas: 'Талас' },
+  tr: { Bişkek: 'Bişkek', Oş: 'Oş', Karakol: 'Karakol', Celalabad: 'Celalabad', Tokmok: 'Tokmok', Narın: 'Narın', Talas: 'Talas' },
+};
+const IMPORT: Record<Lang, Record<ImportSource, string>> = {
+  ru: { JP: 'из Японии', KR: 'из Кореи', US: 'из США', DE: 'из Германии', RU: 'из России', CN: 'из Китая', KG: 'местная' },
+  ky: { JP: 'Япониядан', KR: 'Кореядан', US: 'АКШдан', DE: 'Германиядан', RU: 'Россиядан', CN: 'Кытайдан', KG: 'жергиликтүү' },
+  tr: { JP: 'Japonya’dan', KR: 'Kore’den', US: 'ABD’den', DE: 'Almanya’dan', RU: 'Rusya’dan', CN: 'Çin’den', KG: 'Yerli' },
+};
+export const IMPORT_FLAG: Record<ImportSource, string> = { JP: '🇯🇵', KR: '🇰🇷', US: '🇺🇸', DE: '🇩🇪', RU: '🇷🇺', CN: '🇨🇳', KG: '🇰🇬' };
+
+export const label = {
+  fuel: (lang: Lang, v: FuelType) => FUEL[lang][v],
+  transmission: (lang: Lang, v: Transmission) => TRANSMISSION[lang][v],
+  city: (lang: Lang, v: City) => CITY[lang][v],
+  importedFrom: (lang: Lang, v: ImportSource) => IMPORT[lang][v],
+};

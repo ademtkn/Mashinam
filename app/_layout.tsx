@@ -4,11 +4,13 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { FavoritesProvider } from '../context/FavoritesContext';
+import { LanguageProvider } from '../context/LanguageContext';
 import DemoContactModal from '../components/DemoContactModal';
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
+      <LanguageProvider>
       <FavoritesProvider>
         <StatusBar style="light" />
         {/* On desktop browsers, keep a phone-width column so the feed looks like the app. */}
@@ -19,6 +21,7 @@ export default function RootLayout() {
         </View>
         <DemoContactModal />
       </FavoritesProvider>
+      </LanguageProvider>
     </SafeAreaProvider>
   );
 }

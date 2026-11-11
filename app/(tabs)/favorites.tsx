@@ -3,10 +3,12 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Heart, MapPin, MessageCircle, Phone } from 'lucide-react-native';
-import { callSeller, openWhatsApp } from '../../components/ActionButtons';
+import { Heart, MapPin, MessageCircle, Phone, Share2 } from 'lucide-react-native';
+import { callSeller, openWhatsApp, shareCar } from '../../components/ActionButtons';
 import { Colors } from '../../constants/colors';
+import { label } from '../../constants/i18n';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useLang } from '../../context/LanguageContext';
 import { fetchCars } from '../../services/carService';
 import type { Car } from '../../types/car';
 import { formatPrice } from '../../utils/format';
@@ -15,6 +17,7 @@ export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { ids, toggle } = useFavorites();
+  const { lang, t } = useLang();
   const [cars, setCars] = useState<Car[]>([]);
 
   useEffect(() => {
@@ -25,17 +28,15 @@ export default function FavoritesScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
-      <Text style={styles.heading}>Favorilerim</Text>
+      <Text style={styles.heading}>{t('fav.title')}</Text>
 
       {favorites.length === 0 ? (
         <View style={styles.empty}>
           <Heart size={52} color={Colors.textFaint} />
-          <Text style={styles.emptyTitle}>Henüz favori yok</Text>
-          <Text style={styles.emptyText}>
-            Akışta bir fotoğrafa çift dokun ya da kalp ikonuna bas.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('fav.emptyTitle')}</Text>
+          <Text style={styles.emptyText}>{t('fav.emptyText')}</Text>
           <Pressable style={styles.cta} onPress={() => router.navigate('/')}>
-            <Text style={styles.ctaText}>Keşfet’e git</Text>
+            <Text style={styles.ctaText}>{t('fav.cta')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -50,20 +51,30 @@ export default function FavoritesScreen() {
                 <Text style={styles.title} numberOfLines={1}>
                   {item.brand} {item.model} • {item.year}
                 </Text>
-                <Text style={styles.price}>{formatPrice(item.priceUsd)}</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.price}>{formatPrice(item.priceUsd)}</Text>
+                  {item.oldPriceUsd !== undefined && item.oldPriceUsd > item.priceUsd && (
+                    <Text style={styles.oldPrice}>{formatPrice(item.oldPriceUsd)}</Text>
+                  )}
+                </View>
                 <View style={styles.city}>
                   <MapPin size={13} color={Colors.textFaint} />
-                  <Text style={styles.cityText}>{item.city}</Text>
+                  <Text style={styles.cityText}>{label.city(lang, item.city)}</Text>
                 </View>
               </View>
               <View style={styles.actions}>
-                <Pressable onPress={() => toggle(item.id)} hitSlop={8}>
-                  <Heart size={22} color={Colors.danger} fill={Colors.danger} />
-                </Pressable>
+                <View style={styles.actionRow}>
+                  <Pressable onPress={() => shareCar(item, lang)} hitSlop={8}>
+                    <Share2 size={20} color={Colors.textMuted} />
+                  </Pressable>
+                  <Pressable onPress={() => toggle(item.id)} hitSlop={8}>
+                    <Heart size={22} color={Colors.danger} fill={Colors.danger} />
+                  </Pressable>
+                </View>
                 <View style={styles.actionRow}>
                   <Pressable
                     style={[styles.iconBtn, { backgroundColor: Colors.whatsapp }]}
-                    onPress={() => openWhatsApp(item)}
+                    onPress={() => openWhatsApp(item, lang)}
                   >
                     <MessageCircle size={18} color={Colors.white} />
                   </Pressable>
@@ -102,10 +113,12 @@ const styles = StyleSheet.create({
   thumb: { width: 92, height: 92, borderRadius: 12 },
   info: { flex: 1, gap: 4 },
   title: { color: Colors.white, fontSize: 15, fontWeight: '800' },
+  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   price: { color: Colors.amber, fontSize: 18, fontWeight: '900' },
+  oldPrice: { color: Colors.textFaint, fontSize: 12, textDecorationLine: 'line-through' },
   city: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cityText: { color: Colors.textFaint, fontSize: 12 },
   actions: { alignItems: 'flex-end', justifyContent: 'space-between', height: 92 },
-  actionRow: { flexDirection: 'row', gap: 8 },
+  actionRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   iconBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

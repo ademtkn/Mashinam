@@ -14,19 +14,40 @@ import {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { ChevronLeft, ChevronRight, Fuel, Gauge, Heart, Joystick, MapPin, Play, Volume2, VolumeX } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileCheck2,
+  FileX2,
+  Fuel,
+  Gauge,
+  Heart,
+  Joystick,
+  MapPin,
+  Play,
+  Share2,
+  ShieldAlert,
+  ShieldCheck,
+  User,
+  Volume2,
+  VolumeX,
+} from 'lucide-react-native';
 import { Colors } from '../constants/colors';
+import { IMPORT_FLAG, label } from '../constants/i18n';
+import { useLang } from '../context/LanguageContext';
 import type { Car, Photo } from '../types/car';
 import { formatKm, formatPrice } from '../utils/format';
-import ActionButtons from './ActionButtons';
+import ActionButtons, { shareCar } from './ActionButtons';
 import FeedVideo from './FeedVideo';
 import SeenDivider, { SEEN_DIVIDER_HEIGHT } from './SeenDivider';
+import SellerRow from './SellerRow';
 
 // Commons serves fixed thumbnail widths; a tiny one is plenty for the blurred fill.
 const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
 
 const NATIVE_DRIVER = Platform.OS !== 'web';
 const DOUBLE_TAP_MS = 280;
+const GREEN = '#10B981';
 
 interface Props {
   car: Car;
@@ -41,11 +62,11 @@ interface Props {
   onDoubleTapFavorite: (id: string) => void;
 }
 
-function Spec({ icon, value }: { icon: React.ReactNode; value: string }) {
+function Spec({ icon, value, color }: { icon: React.ReactNode; value: string; color?: string }) {
   return (
     <View style={styles.spec}>
       {icon}
-      <Text style={styles.specText}>{value}</Text>
+      <Text style={[styles.specText, color ? { color } : null]}>{value}</Text>
     </View>
   );
 }
@@ -62,6 +83,7 @@ function CarFeedCard({
   onToggleFavorite,
   onDoubleTapFavorite,
 }: Props) {
+  const { lang, t } = useLang();
   const [photoIndex, setPhotoIndex] = useState(0);
   const listRef = useRef<FlatList<Photo>>(null);
   const lastTap = useRef(0);
@@ -71,6 +93,7 @@ function CarFeedCard({
   const currentIsVideo = !!car.photos[photoIndex]?.video;
   // Everything pinned to the top of the photo moves down when the divider is shown.
   const overlayTop = topOffset + (seenDivider ? SEEN_DIVIDER_HEIGHT : 0);
+  const priceDrop = car.oldPriceUsd !== undefined && car.oldPriceUsd > car.priceUsd;
 
   useEffect(() => () => {
     if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
@@ -191,14 +214,14 @@ function CarFeedCard({
 
       {seenDivider && (
         <View style={[styles.seenDivider, { top: topOffset }]} pointerEvents="none">
-          <SeenDivider />
+          <SeenDivider label={t('feed.seen')} />
         </View>
       )}
       <LinearGradient
         pointerEvents="none"
         colors={['rgba(11,20,38,0)', 'rgba(11,20,38,0.55)', 'rgba(11,20,38,0.96)']}
         locations={[0, 0.4, 1]}
-        style={[styles.bottomShade, { height: height * 0.55 }]}
+        style={[styles.bottomShade, { height: height * 0.6 }]}
       />
 
       {currentIsVideo && (
@@ -211,7 +234,7 @@ function CarFeedCard({
             onPress={() => setMuted((m) => !m)}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={muted ? 'Sesi aç' : 'Sesi kapat'}
+            accessibilityLabel={muted ? 'Unmute' : 'Mute'}
           >
             {muted ? <VolumeX size={18} color={Colors.white} /> : <Volume2 size={18} color={Colors.white} />}
           </Pressable>
@@ -221,7 +244,7 @@ function CarFeedCard({
       {car.photos.some((p) => p.video) && !currentIsVideo && (
         <View style={[styles.videoBadge, { top: overlayTop + 44 }]} pointerEvents="none">
           <Play size={12} color={Colors.navy} fill={Colors.navy} />
-          <Text style={styles.videoBadgeText}>Video</Text>
+          <Text style={styles.videoBadgeText}>{t('card.video')}</Text>
         </View>
       )}
 
@@ -283,37 +306,79 @@ function CarFeedCard({
                 ))}
               </View>
             )}
+            <SellerRow car={car} likes={car.likes + (isFavorite ? 1 : 0)} />
             <Text style={styles.title} numberOfLines={2}>
               {car.brand} {car.model} <Text style={styles.titleYear}>• {car.year}</Text>
             </Text>
-            <Text style={styles.price}>{formatPrice(car.priceUsd)}</Text>
+            <View style={styles.priceRow}>
+              <Text style={styles.price}>{formatPrice(car.priceUsd)}</Text>
+              {priceDrop && (
+                <>
+                  <Text style={styles.oldPrice}>{formatPrice(car.oldPriceUsd!)}</Text>
+                  <View style={styles.dropBadge}>
+                    <Text style={styles.dropText}>
+                      {t('card.priceDrop')} −{formatPrice(car.oldPriceUsd! - car.priceUsd)}
+                    </Text>
+                  </View>
+                </>
+              )}
+            </View>
             <View style={styles.specs}>
-              <Spec icon={<Fuel size={15} color={Colors.amber} />} value={car.fuel} />
-              <Spec icon={<Joystick size={15} color={Colors.amber} />} value={car.transmission} />
-              <Spec icon={<MapPin size={15} color={Colors.amber} />} value={car.city} />
+              <Spec icon={<Fuel size={15} color={Colors.amber} />} value={label.fuel(lang, car.fuel)} />
+              <Spec icon={<Joystick size={15} color={Colors.amber} />} value={label.transmission(lang, car.transmission)} />
               <Spec icon={<Gauge size={15} color={Colors.amber} />} value={formatKm(car.mileageKm)} />
+              <Spec icon={<MapPin size={15} color={Colors.amber} />} value={label.city(lang, car.city)} />
+            </View>
+            {/* The three things a buyer in KG asks first: where it's from, accidents, customs. */}
+            <View style={styles.specs}>
+              <Spec
+                icon={<Text style={styles.flag}>{IMPORT_FLAG[car.importedFrom]}</Text>}
+                value={label.importedFrom(lang, car.importedFrom)}
+              />
+              <Spec
+                icon={car.accidentFree ? <ShieldCheck size={15} color={GREEN} /> : <ShieldAlert size={15} color={Colors.danger} />}
+                value={car.accidentFree ? t('card.accidentFree') : t('card.hadAccident')}
+                color={car.accidentFree ? GREEN : Colors.danger}
+              />
+              <Spec
+                icon={car.customsCleared ? <FileCheck2 size={15} color={GREEN} /> : <FileX2 size={15} color={Colors.danger} />}
+                value={car.customsCleared ? t('card.customs') : t('card.noCustoms')}
+                color={car.customsCleared ? GREEN : Colors.danger}
+              />
+              <Spec icon={<User size={15} color={Colors.amber} />} value={t('card.owners', { n: car.owners })} />
             </View>
           </View>
 
-          <Pressable
-            onPress={() => {
-              if (!isFavorite) popHeart();
-              onToggleFavorite(car.id);
-            }}
-            hitSlop={12}
-            style={styles.favButton}
-            accessibilityRole="button"
-            accessibilityLabel={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-          >
-            <Animated.View style={{ transform: [{ scale: heartScale }] }}>
-              <Heart
-                size={28}
-                color={isFavorite ? Colors.danger : Colors.white}
-                fill={isFavorite ? Colors.danger : 'transparent'}
-                strokeWidth={2.2}
-              />
-            </Animated.View>
-          </Pressable>
+          <View style={styles.sideButtons}>
+            <Pressable
+              onPress={() => {
+                if (!isFavorite) popHeart();
+                onToggleFavorite(car.id);
+              }}
+              hitSlop={10}
+              style={styles.roundButton}
+              accessibilityRole="button"
+              accessibilityLabel="favorite"
+            >
+              <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+                <Heart
+                  size={26}
+                  color={isFavorite ? Colors.danger : Colors.white}
+                  fill={isFavorite ? Colors.danger : 'transparent'}
+                  strokeWidth={2.2}
+                />
+              </Animated.View>
+            </Pressable>
+            <Pressable
+              onPress={() => shareCar(car, lang)}
+              hitSlop={10}
+              style={styles.roundButton}
+              accessibilityRole="button"
+              accessibilityLabel={t('btn.share')}
+            >
+              <Share2 size={22} color={Colors.white} strokeWidth={2.2} />
+            </Pressable>
+          </View>
         </View>
 
         <ActionButtons car={car} />
@@ -399,29 +464,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bottom: { position: 'absolute', left: 16, right: 16, bottom: 16, gap: 16 },
+  bottom: { position: 'absolute', left: 16, right: 16, bottom: 14, gap: 14 },
   infoRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
-  info: { flex: 1, gap: 6 },
-  dots: { flexDirection: 'row', gap: 5, marginBottom: 4 },
+  info: { flex: 1, gap: 5 },
+  dots: { flexDirection: 'row', gap: 5, marginBottom: 2 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
   dotActive: { width: 18, backgroundColor: Colors.amber },
   title: {
     color: Colors.white,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
     letterSpacing: -0.5,
     textShadowColor: 'rgba(0,0,0,0.4)',
     textShadowRadius: 8,
   },
   titleYear: { color: Colors.textMuted, fontWeight: '600' },
-  price: { color: Colors.amber, fontSize: 30, fontWeight: '900', letterSpacing: -0.5 },
-  specs: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 2 },
+  priceRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
+  price: { color: Colors.amber, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  oldPrice: { color: Colors.textFaint, fontSize: 15, fontWeight: '700', textDecorationLine: 'line-through' },
+  dropBadge: { backgroundColor: Colors.danger, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  dropText: { color: Colors.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.3 },
+  specs: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 1 },
   spec: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   specText: { color: Colors.textMuted, fontSize: 13, fontWeight: '600' },
-  favButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+  flag: { fontSize: 13, lineHeight: 16 },
+  sideButtons: { gap: 10 },
+  roundButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: Colors.glass,
     borderWidth: 1,
     borderColor: Colors.glassBorder,

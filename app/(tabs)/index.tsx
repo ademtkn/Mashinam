@@ -12,18 +12,28 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { RefreshCw, SearchX } from 'lucide-react-native';
 import CarFeedCard from '../../components/CarFeedCard';
 import FilterBar from '../../components/FilterBar';
 import { Colors } from '../../constants/colors';
 import { useFavorites } from '../../context/FavoritesContext';
-import { arrangeFeed, fetchCars, filterCars, getBrands, isDefaultFilters, type FeedArrangement } from '../../services/carService';
+import {
+  DEFAULT_FILTERS,
+  arrangeFeed,
+  countFresh,
+  fetchCars,
+  filterCars,
+  getBrands,
+  isDefaultFilters,
+  type FeedArrangement,
+} from '../../services/carService';
+import { LANGS, LANG_LABEL } from '../../constants/i18n';
+import { useLang } from '../../context/LanguageContext';
 import { useSeenCars } from '../../hooks/useSeenCars';
 import { PULL_MAX, PULL_THRESHOLD, usePullToRefresh } from '../../hooks/usePullToRefresh';
 import type { Car, CarFilters } from '../../types/car';
 
-const DEFAULT_FILTERS: CarFilters = { brand: null, priceRange: 'all' };
 const IS_WEB = Platform.OS === 'web';
 // On web, cards this far from the active one render as an empty placeholder.
 const NEAR_CARDS = 2;
@@ -35,6 +45,9 @@ const SEEN_AFTER_MS = 1500;
 export default function FeedScreen() {
   const insets = useSafeAreaInsets();
   const { isFavorite, toggle, add } = useFavorites();
+  const { lang, setLang, t } = useLang();
+  // A shared link (…/?car=ID) opens with that listing on top.
+  const { car: pinnedId } = useLocalSearchParams<{ car?: string }>();
 
   const [cars, setCars] = useState<Car[] | null>(null);
   const [filters, setFilters] = useState<CarFilters>(DEFAULT_FILTERS);
@@ -47,7 +60,10 @@ export default function FeedScreen() {
   const { ready: seenReady, markSeen, snapshot: snapshotSeen } = useSeenCars();
 
   // Unseen listings first (shuffled), then the ones this device has already seen.
-  const buildFeed = useCallback(async () => arrangeFeed(await fetchCars(), snapshotSeen()), [snapshotSeen]);
+  const buildFeed = useCallback(
+    async () => arrangeFeed(await fetchCars(), snapshotSeen(), typeof pinnedId === 'string' ? pinnedId : null),
+    [snapshotSeen, pinnedId],
+  );
   const applyFeed = useCallback(({ cars: ordered, seenAtLoad: seenIds }: FeedArrangement) => {
     setCars(ordered);
     setSeenAtLoad(seenIds);
@@ -95,6 +111,7 @@ export default function FeedScreen() {
   }, [navigation, refreshNow]);
 
   const brands = useMemo(() => getBrands(cars ?? []), [cars]);
+  const fresh = useMemo(() => countFresh(cars ?? []), [cars]);
   const visible = useMemo(() => filterCars(cars ?? [], filters), [cars, filters]);
 
   const visibleRef = useRef(visible);
@@ -183,9 +200,9 @@ export default function FeedScreen() {
       ) : visible.length === 0 ? (
         <View style={styles.center}>
           <SearchX size={48} color={Colors.textFaint} />
-          <Text style={styles.emptyTitle}>Bu filtrelere uygun ilan yok</Text>
+          <Text style={styles.emptyTitle}>{t('feed.empty')}</Text>
           <Pressable style={styles.reset} onPress={() => setFilters(DEFAULT_FILTERS)}>
-            <Text style={styles.resetText}>Filtreleri temizle</Text>
+            <Text style={styles.resetText}>{t('feed.reset')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -258,10 +275,33 @@ export default function FeedScreen() {
         onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - insets.top)}
         pointerEvents="box-none"
       >
-        <Pressable onPress={refreshNow} style={styles.logoWrap} hitSlop={8}>
-          <Text style={styles.logo}>Mashinam</Text>
-        </Pressable>
-        <FilterBar brands={brands} filters={filters} onChange={setFilters} resultCount={visible.length} />
+        <View style={styles.header}>
+          <Pressable onPress={refreshNow} style={styles.logoWrap} hitSlop={8}>
+            <Text style={styles.logo}>Mashinam</Text>
+          </Pressable>
+          <View style={styles.langRow}>
+            {LANGS.map((l) => (
+              <Pressable
+                key={l}
+                onPress={() => setLang(l)}
+                style={[styles.langChip, l === lang && styles.langChipActive]}
+                hitSlop={4}
+                accessibilityRole="button"
+                accessibilityState={{ selected: l === lang }}
+              >
+                <Text style={[styles.langText, l === lang && styles.langTextActive]}>{LANG_LABEL[l]}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+        <FilterBar
+          brands={brands}
+          filters={filters}
+          onChange={setFilters}
+          resultCount={visible.length}
+          newToday={fresh.newToday}
+          priceDrops={fresh.priceDrops}
+        />
       </View>
     </View>
   );
@@ -289,6 +329,12 @@ const styles = StyleSheet.create({
   reset: { backgroundColor: Colors.amber, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14 },
   resetText: { color: Colors.navy, fontWeight: '800' },
   bar: { position: 'absolute', top: 0, left: 0, right: 0, paddingBottom: 8, gap: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 14 },
   logoWrap: { alignSelf: 'flex-start' },
+  langRow: { flexDirection: 'row', backgroundColor: Colors.glass, borderRadius: 14, padding: 2, borderWidth: 1, borderColor: Colors.glassBorder },
+  langChip: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 12 },
+  langChipActive: { backgroundColor: Colors.amber },
+  langText: { color: Colors.textMuted, fontSize: 11, fontWeight: '800' },
+  langTextActive: { color: Colors.navy },
   logo: { color: Colors.white, fontSize: 22, fontWeight: '900', letterSpacing: -0.5, paddingHorizontal: 16 },
 });

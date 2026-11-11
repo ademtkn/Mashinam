@@ -3,54 +3,53 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
+import type { StringKey } from '../../constants/i18n';
+import { useLang } from '../../context/LanguageContext';
 
 // UI only for now. Phase 2: image picker + Supabase Storage upload + insert into `cars`.
-const FIELDS = [
-  { key: 'brand', label: 'Marka', placeholder: 'Toyota', keyboard: 'default' },
-  { key: 'model', label: 'Model', placeholder: 'Camry', keyboard: 'default' },
-  { key: 'year', label: 'Yıl', placeholder: '2020', keyboard: 'number-pad' },
-  { key: 'price', label: 'Fiyat ($)', placeholder: '25000', keyboard: 'number-pad' },
-  { key: 'phone', label: 'Telefon / WhatsApp', placeholder: '+996 555 123 456', keyboard: 'phone-pad' },
-] as const;
+const FIELDS: { key: string; label: StringKey; placeholder: string; keyboard: 'default' | 'number-pad' | 'phone-pad' }[] = [
+  { key: 'brand', label: 'sell.brand', placeholder: 'Toyota', keyboard: 'default' },
+  { key: 'model', label: 'sell.model', placeholder: 'Camry', keyboard: 'default' },
+  { key: 'year', label: 'sell.year', placeholder: '2020', keyboard: 'number-pad' },
+  { key: 'price', label: 'sell.price', placeholder: '25000', keyboard: 'number-pad' },
+  { key: 'phone', label: 'sell.phone', placeholder: '+996 555 123 456', keyboard: 'phone-pad' },
+];
 
 export default function SellScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLang();
   const [values, setValues] = useState<Record<string, string>>({});
   const [sent, setSent] = useState(false);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.heading}>İlan Ver</Text>
-        <Text style={styles.sub}>Fotoğraf ekle, birkaç bilgi gir, yayında.</Text>
+        <Text style={styles.heading}>{t('sell.title')}</Text>
+        <Text style={styles.sub}>{t('sell.sub')}</Text>
 
         <Pressable style={styles.photoBox}>
           <Camera size={34} color={Colors.amber} />
-          <Text style={styles.photoText}>Fotoğraf ekle (en fazla 10)</Text>
+          <Text style={styles.photoText}>{t('sell.photo')}</Text>
         </Pressable>
 
         {FIELDS.map((f) => (
           <View key={f.key} style={styles.field}>
-            <Text style={styles.label}>{f.label}</Text>
+            <Text style={styles.label}>{t(f.label)}</Text>
             <TextInput
               style={styles.input}
               placeholder={f.placeholder}
               placeholderTextColor={Colors.textFaint}
               keyboardType={f.keyboard}
               value={values[f.key] ?? ''}
-              onChangeText={(t) => setValues((v) => ({ ...v, [f.key]: t }))}
+              onChangeText={(text) => setValues((v) => ({ ...v, [f.key]: text }))}
             />
           </View>
         ))}
 
         <Pressable style={styles.submit} onPress={() => setSent(true)}>
-          <Text style={styles.submitText}>Yayınla</Text>
+          <Text style={styles.submitText}>{t('sell.publish')}</Text>
         </Pressable>
-        {sent && (
-          <Text style={styles.note}>
-            Prototip modu: ilan yükleme Aşama 2’de Supabase ile bağlanacak.
-          </Text>
-        )}
+        {sent && <Text style={styles.note}>{t('sell.note')}</Text>}
       </ScrollView>
     </KeyboardAvoidingView>
   );

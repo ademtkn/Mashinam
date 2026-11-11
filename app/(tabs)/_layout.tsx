@@ -3,9 +3,11 @@ import { Tabs } from 'expo-router';
 import { Compass, Heart, SquarePlus } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useLang } from '../../context/LanguageContext';
 
 export default function TabsLayout() {
   const { ids } = useFavorites();
+  const { t } = useLang();
 
   return (
     <Tabs
@@ -24,16 +26,16 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: 'Keşfet', tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
+        options={{ title: t('tab.explore'), tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="sell"
-        options={{ title: 'İlan Ver', tabBarIcon: ({ color, size }) => <SquarePlus color={color} size={size} /> }}
+        options={{ title: t('tab.sell'), tabBarIcon: ({ color, size }) => <SquarePlus color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
-          title: 'Favorilerim',
+          title: t('tab.favorites'),
           tabBarIcon: ({ color, size }) => <Heart color={color} size={size} />,
           tabBarBadge: ids.size > 0 ? ids.size : undefined,
           tabBarBadgeStyle: { backgroundColor: Colors.danger, color: Colors.white, fontSize: 10 },
