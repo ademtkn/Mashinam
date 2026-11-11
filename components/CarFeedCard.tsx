@@ -20,6 +20,7 @@ import type { Car, Photo } from '../types/car';
 import { formatKm, formatPrice } from '../utils/format';
 import ActionButtons from './ActionButtons';
 import FeedVideo from './FeedVideo';
+import SeenDivider, { SEEN_DIVIDER_HEIGHT } from './SeenDivider';
 
 // Commons serves fixed thumbnail widths; a tiny one is plenty for the blurred fill.
 const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
@@ -34,6 +35,7 @@ interface Props {
   topOffset: number; // space taken by the floating filter bar
   isActive: boolean;
   isNear?: boolean; // false = far from the viewport; render a cheap placeholder instead of media
+  seenDivider?: boolean; // first card of the "already seen" part of the feed
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   onDoubleTapFavorite: (id: string) => void;
@@ -55,6 +57,7 @@ function CarFeedCard({
   topOffset,
   isActive,
   isNear = true,
+  seenDivider = false,
   isFavorite,
   onToggleFavorite,
   onDoubleTapFavorite,
@@ -66,6 +69,8 @@ function CarFeedCard({
   const [muted, setMuted] = useState(true);
   const [progress, setProgress] = useState(0);
   const currentIsVideo = !!car.photos[photoIndex]?.video;
+  // Everything pinned to the top of the photo moves down when the divider is shown.
+  const overlayTop = topOffset + (seenDivider ? SEEN_DIVIDER_HEIGHT : 0);
 
   useEffect(() => () => {
     if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
@@ -181,8 +186,14 @@ function CarFeedCard({
       <LinearGradient
         pointerEvents="none"
         colors={['rgba(11,20,38,0.85)', 'rgba(11,20,38,0)']}
-        style={[styles.topShade, { height: topOffset + 60 }]}
+        style={[styles.topShade, { height: overlayTop + 60 }]}
       />
+
+      {seenDivider && (
+        <View style={[styles.seenDivider, { top: topOffset }]} pointerEvents="none">
+          <SeenDivider />
+        </View>
+      )}
       <LinearGradient
         pointerEvents="none"
         colors={['rgba(11,20,38,0)', 'rgba(11,20,38,0.55)', 'rgba(11,20,38,0.96)']}
@@ -192,11 +203,11 @@ function CarFeedCard({
 
       {currentIsVideo && (
         <>
-          <View style={[styles.progressTrack, { top: topOffset }]} pointerEvents="none">
+          <View style={[styles.progressTrack, { top: overlayTop }]} pointerEvents="none">
             <View style={[styles.progressFill, { transform: [{ scaleX: Math.min(progress, 1) }] }]} />
           </View>
           <Pressable
-            style={[styles.muteButton, { top: topOffset + 44 }]}
+            style={[styles.muteButton, { top: overlayTop + 44 }]}
             onPress={() => setMuted((m) => !m)}
             hitSlop={8}
             accessibilityRole="button"
@@ -208,14 +219,14 @@ function CarFeedCard({
       )}
 
       {car.photos.some((p) => p.video) && !currentIsVideo && (
-        <View style={[styles.videoBadge, { top: topOffset + 44 }]} pointerEvents="none">
+        <View style={[styles.videoBadge, { top: overlayTop + 44 }]} pointerEvents="none">
           <Play size={12} color={Colors.navy} fill={Colors.navy} />
           <Text style={styles.videoBadgeText}>Video</Text>
         </View>
       )}
 
       {car.photos.length > 1 && (
-        <View style={[styles.counter, { top: topOffset + 8 }]} pointerEvents="none">
+        <View style={[styles.counter, { top: overlayTop + 8 }]} pointerEvents="none">
           <Text style={styles.counterText}>
             {photoIndex + 1}/{car.photos.length}
           </Text>
@@ -224,7 +235,7 @@ function CarFeedCard({
 
       {car.photos[photoIndex]?.author && (
         <Pressable
-          style={[styles.credit, { top: topOffset + 8 }]}
+          style={[styles.credit, { top: overlayTop + 8 }]}
           onPress={() => {
             const src = car.photos[photoIndex]?.source;
             if (src) Linking.openURL(src);
@@ -314,6 +325,7 @@ function CarFeedCard({
 export default memo(CarFeedCard);
 
 const styles = StyleSheet.create({
+  seenDivider: { position: 'absolute', left: 0, right: 0 },
   progressTrack: {
     position: 'absolute',
     left: 14,

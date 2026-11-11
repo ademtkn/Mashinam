@@ -13,10 +13,33 @@ export const PRICE_RANGES: { id: PriceRangeId; label: string; min: number; max: 
   { id: 'gt30', label: '30K $ +', min: 30000, max: Infinity },
 ];
 
-// The feed is shown in a fresh random order on every load.
 export async function fetchCars(): Promise<Car[]> {
   await new Promise((r) => setTimeout(r, 350));
-  return shuffle([...mockCars, ...videoCars]);
+  return [...mockCars, ...videoCars];
+}
+
+export interface FeedArrangement {
+  cars: Car[];
+  // Ids that were already seen when this order was built. The first card in the
+  // feed with one of these ids gets the "you've seen everything below" divider.
+  seenAtLoad: Set<string>;
+}
+
+// Feed order, Instagram style: listings this device hasn't seen yet come first,
+// freshly shuffled on every load; the ones it has seen follow in a stable order
+// (oldest view first). Once everything has been seen, the whole feed is shuffled.
+export function arrangeFeed(cars: Car[], seen: Map<string, number>): FeedArrangement {
+  const unseen = cars.filter((c) => !seen.has(c.id));
+  if (unseen.length === 0 || unseen.length === cars.length) {
+    return { cars: shuffle(cars), seenAtLoad: new Set() };
+  }
+  const seenCars = cars
+    .filter((c) => seen.has(c.id))
+    .sort((a, b) => (seen.get(a.id) ?? 0) - (seen.get(b.id) ?? 0));
+  return {
+    cars: [...shuffle(unseen), ...seenCars],
+    seenAtLoad: new Set(seenCars.map((c) => c.id)),
+  };
 }
 
 export function isDefaultFilters(f: CarFilters) {

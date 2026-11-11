@@ -18,7 +18,8 @@ import CarFeedCard from '../../components/CarFeedCard';
 import FilterBar from '../../components/FilterBar';
 import { Colors } from '../../constants/colors';
 import { useFavorites } from '../../context/FavoritesContext';
-import { fetchCars, filterCars, getBrands, isDefaultFilters } from '../../services/carService';
+import { arrangeFeed, fetchCars, filterCars, getBrands, isDefaultFilters, type FeedArrangement } from '../../services/carService';
+import { useSeenCars } from '../../hooks/useSeenCars';
 import { PULL_MAX, PULL_THRESHOLD, usePullToRefresh } from '../../hooks/usePullToRefresh';
 import type { Car, CarFilters } from '../../types/car';
 
@@ -28,6 +29,8 @@ const IS_WEB = Platform.OS === 'web';
 const NEAR_CARDS = 2;
 // How long the scroll position must stay still before the active card changes (web).
 const SETTLE_MS = 120;
+// A card counts as "seen" once it has been the active card this long.
+const SEEN_AFTER_MS = 1500;
 
 export default function FeedScreen() {
   const insets = useSafeAreaInsets();
@@ -38,12 +41,28 @@ export default function FeedScreen() {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [barHeight, setBarHeight] = useState(0);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [seenAtLoad, setSeenAtLoad] = useState<Set<string>>(() => new Set());
   const listRef = useRef<FlatList<Car>>(null);
   const navigation = useNavigation();
+  const { ready: seenReady, markSeen, snapshot: snapshotSeen } = useSeenCars();
+
+  // Unseen listings first (shuffled), then the ones this device has already seen.
+  const buildFeed = useCallback(async () => arrangeFeed(await fetchCars(), snapshotSeen()), [snapshotSeen]);
+  const applyFeed = useCallback(({ cars: ordered, seenAtLoad: seenIds }: FeedArrangement) => {
+    setCars(ordered);
+    setSeenAtLoad(seenIds);
+  }, []);
 
   useEffect(() => {
-    fetchCars().then(setCars);
-  }, []);
+    if (!seenReady) return;
+    let alive = true;
+    buildFeed().then((feed) => {
+      if (alive) applyFeed(feed);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [seenReady, buildFeed, applyFeed]);
 
   const filtersRef = useRef(filters);
   useEffect(() => {
@@ -55,14 +74,13 @@ export default function FeedScreen() {
     sizeRef.current = size;
   }, [size]);
 
-  // Refresh = reload the listings. With no filter applied they come back in a
-  // new random order; with a filter applied the order is kept. Either way the
-  // feed returns to the top.
+  // Refresh = reload the listings. With no filter applied the unseen ones come
+  // back in a new random order; with a filter applied the order is kept. Either
+  // way the feed returns to the top.
   const reload = useCallback(async () => {
-    const fresh = await fetchCars();
-    if (isDefaultFilters(filtersRef.current)) setCars(fresh);
+    if (isDefaultFilters(filtersRef.current)) applyFeed(await buildFeed());
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, []);
+  }, [buildFeed, applyFeed]);
 
   const { pull, refreshing, refreshNow, touchHandlers } = usePullToRefresh(reload, {
     isAtTop: () => scrollY.current <= 2,
@@ -88,6 +106,20 @@ export default function FeedScreen() {
   // Until the list reports what's on screen (or after the list changes), the first card is the active one.
   const currentId = visible.some((c) => c.id === activeId) ? activeId : (visible[0]?.id ?? null);
   const activeIndex = Math.max(0, visible.findIndex((c) => c.id === currentId));
+
+  // The first already-seen card gets the divider, unless the feed starts with it
+  // (nothing new above it to separate from).
+  const dividerId = useMemo(() => {
+    const idx = visible.findIndex((c) => seenAtLoad.has(c.id));
+    return idx > 0 ? visible[idx].id : null;
+  }, [visible, seenAtLoad]);
+
+  // Dwelling on a card marks it as seen for next time.
+  useEffect(() => {
+    if (!currentId) return;
+    const t = setTimeout(() => markSeen(currentId), SEEN_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [currentId, markSeen]);
 
   // Web: the browser's CSS scroll-snap re-snaps to the nearest card whenever the
   // list's DOM changes mid-swipe, which made the feed jump around on its own.
@@ -133,12 +165,13 @@ export default function FeedScreen() {
         topOffset={insets.top + barHeight}
         isActive={item.id === currentId}
         isNear={!IS_WEB || Math.abs(index - activeIndex) <= NEAR_CARDS}
+        seenDivider={item.id === dividerId}
         isFavorite={isFavorite(item.id)}
         onToggleFavorite={toggle}
         onDoubleTapFavorite={add}
       />
     ),
-    [size, insets.top, barHeight, currentId, activeIndex, isFavorite, toggle, add],
+    [size, insets.top, barHeight, currentId, activeIndex, dividerId, isFavorite, toggle, add],
   );
 
   return (
