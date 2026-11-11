@@ -25,6 +25,7 @@ import {
   Joystick,
   MapPin,
   Play,
+  Eye,
   Share2,
   ShieldAlert,
   ShieldCheck,
@@ -48,6 +49,7 @@ const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
 const NATIVE_DRIVER = Platform.OS !== 'web';
 const DOUBLE_TAP_MS = 280;
 const GREEN = '#10B981';
+const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n));
 
 interface Props {
   car: Car;
@@ -306,7 +308,7 @@ function CarFeedCard({
                 ))}
               </View>
             )}
-            <SellerRow car={car} likes={car.likes + (isFavorite ? 1 : 0)} />
+            <SellerRow car={car} />
             <Text style={styles.title} numberOfLines={2}>
               {car.brand} {car.model} <Text style={styles.titleYear}>• {car.year}</Text>
             </Text>
@@ -349,6 +351,7 @@ function CarFeedCard({
             </View>
           </View>
 
+          {/* Counts sit under the buttons, like Instagram's reels column. */}
           <View style={styles.sideButtons}>
             <Pressable
               onPress={() => {
@@ -369,6 +372,7 @@ function CarFeedCard({
                 />
               </Animated.View>
             </Pressable>
+            <Text style={styles.sideLabel}>{compact(car.likes + (isFavorite ? 1 : 0))}</Text>
             <Pressable
               onPress={() => shareCar(car, lang)}
               hitSlop={10}
@@ -378,6 +382,10 @@ function CarFeedCard({
             >
               <Share2 size={22} color={Colors.white} strokeWidth={2.2} />
             </Pressable>
+            <View style={styles.sideStat}>
+              <Eye size={12} color={Colors.textMuted} />
+              <Text style={styles.sideLabel}>{compact(car.views)}</Text>
+            </View>
           </View>
         </View>
 
@@ -488,7 +496,9 @@ const styles = StyleSheet.create({
   spec: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   specText: { color: Colors.textMuted, fontSize: 13, fontWeight: '600' },
   flag: { fontSize: 13, lineHeight: 16 },
-  sideButtons: { gap: 10 },
+  sideButtons: { alignItems: 'center', gap: 2 },
+  sideStat: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  sideLabel: { color: Colors.textMuted, fontSize: 12, fontWeight: '700', marginBottom: 6 },
   roundButton: {
     width: 50,
     height: 50,
