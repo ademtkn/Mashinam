@@ -57,7 +57,7 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.heading}>{t('tab.profile')}</Text>
+        <Text style={[styles.heading, styles.headingInset]}>{t('tab.profile')}</Text>
         <View style={styles.empty}>
           <UserRound size={52} color={Colors.textFaint} />
           <Text style={styles.emptyTitle}>{t('profile.guestTitle')}</Text>
@@ -197,7 +197,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.navy },
   content: { padding: 16, gap: 12, paddingBottom: 40 },
   flex: { flex: 1 },
-  heading: { color: Colors.white, fontSize: 28, fontWeight: '900', paddingHorizontal: 0 },
+  heading: { color: Colors.white, fontSize: 28, fontWeight: '900' },
+  headingInset: { paddingHorizontal: 16 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 32 },
   emptyTitle: { color: Colors.white, fontSize: 18, fontWeight: '800' },
   emptyText: { color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
