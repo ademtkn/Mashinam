@@ -1,4 +1,5 @@
 import { mockCars } from '../data/mockCars';
+import { mockCars2 } from '../data/mockCars2';
 import { videoCars } from '../data/videoCars';
 import type { Car, CarFilters, PriceRangeId } from '../types/car';
 import { shuffle } from '../utils/shuffle';
@@ -16,7 +17,7 @@ export const PRICE_RANGES: { id: PriceRangeId; label: string; min: number; max: 
 
 export async function fetchCars(): Promise<Car[]> {
   await new Promise((r) => setTimeout(r, 350));
-  return [...mockCars, ...videoCars];
+  return [...mockCars, ...mockCars2, ...videoCars];
 }
 
 export const isPriceDrop = (c: Car) => c.oldPriceUsd !== undefined && c.oldPriceUsd > c.priceUsd;
