@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const [, , html, out, from, to] = process.argv;
+import fs from 'fs';
+const src = fs.readFileSync(html, 'utf8');
+const rows = src.split('<div style="display:flex').slice(1).map((r) => '<div style="display:flex' + r);
+const page = rows.slice(+from, +to).join('');
+const b = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' });
+const p = await b.newPage({ viewport: { width: 940, height: 600 } });
+await p.setContent('<body style="margin:0;background:#111;color:#fff;font:13px sans-serif">' + page + '</body>');
+await p.waitForLoadState('networkidle'); await p.waitForTimeout(1500);
+await p.screenshot({ path: out, fullPage: true }); await b.close();
