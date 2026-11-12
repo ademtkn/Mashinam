@@ -9,6 +9,9 @@ const KEY = 'mashinam.user.v1';
 export interface User {
   name: string;
   phone: string; // digits only, e.g. 996502001903
+  email?: string;
+  password: string; // kept locally for now; real auth comes with Supabase
+  notifications: boolean; // price drops on favourites, new listings (phase 2)
 }
 
 interface AuthValue {
@@ -16,6 +19,8 @@ interface AuthValue {
   ready: boolean;
   signIn: (u: User) => void;
   signOut: () => void;
+  updateUser: (patch: Partial<User>) => void;
+  deleteAccount: () => void;
   // Run `then` now if signed in, otherwise open the sign-in sheet and run it after
   // sign-in. The user is passed in because callers' closures predate the sign-in.
   requireAuth: (then?: (u: User) => void) => void;
@@ -36,7 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
-        if (raw) setUser(JSON.parse(raw) as User);
+        // Accounts created before passwords/notifications existed get defaults.
+        if (raw) setUser({ password: '', notifications: true, ...(JSON.parse(raw) as Partial<User>) } as User);
       })
       .catch(() => {})
       .finally(() => setReady(true));
@@ -53,6 +59,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => {
     setUser(null);
+    AsyncStorage.removeItem(KEY).catch(() => {});
+  }, []);
+
+  const updateUser = useCallback((patch: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
+  }, []);
+
+  // Removes the account and everything stored under it on this device.
+  const deleteAccount = useCallback(() => {
+    setUser((prev) => {
+      if (prev) AsyncStorage.removeItem(`mashinam.favorites.v1.${prev.phone}`).catch(() => {});
+      return null;
+    });
     AsyncStorage.removeItem(KEY).catch(() => {});
   }, []);
 
@@ -74,8 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthValue>(
-    () => ({ user, ready, signIn, signOut, requireAuth, sheetVisible, dismissSheet }),
-    [user, ready, signIn, signOut, requireAuth, sheetVisible, dismissSheet],
+    () => ({ user, ready, signIn, signOut, updateUser, deleteAccount, requireAuth, sheetVisible, dismissSheet }),
+    [user, ready, signIn, signOut, updateUser, deleteAccount, requireAuth, sheetVisible, dismissSheet],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

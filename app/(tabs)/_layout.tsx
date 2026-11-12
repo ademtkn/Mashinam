@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Compass, Heart, SquarePlus } from 'lucide-react-native';
+import { Compass, Heart, SquarePlus, UserRound } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useFavorites } from '../../context/FavoritesContext';
 import { useLang } from '../../context/LanguageContext';
@@ -40,6 +40,10 @@ export default function TabsLayout() {
           tabBarBadge: ids.size > 0 ? ids.size : undefined,
           tabBarBadgeStyle: { backgroundColor: Colors.danger, color: Colors.white, fontSize: 10 },
         }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: t('tab.profile'), tabBarIcon: ({ color, size }) => <UserRound color={color} size={size} /> }}
       />
     </Tabs>
   );

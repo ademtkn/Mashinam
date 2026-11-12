@@ -5,23 +5,25 @@ import { Colors } from '../constants/colors';
 import { normalizePhone, useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 
+export const MIN_PASSWORD = 4;
+
 // Opened by requireAuth(): the first time someone taps a heart.
 export default function SignInSheet() {
   const { sheetVisible, dismissSheet, signIn } = useAuth();
   const { t } = useLang();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+996 ');
-  const [error, setError] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<'fields' | 'password' | null>(null);
 
   const submit = () => {
     const n = name.trim();
     const p = normalizePhone(phone);
-    if (n.length < 2 || p.length < 9) {
-      setError(true);
-      return;
-    }
-    setError(false);
-    signIn({ name: n, phone: p });
+    if (n.length < 2 || p.length < 9) return setError('fields');
+    if (password.length < MIN_PASSWORD) return setError('password');
+    setError(null);
+    signIn({ name: n, phone: p, email: email.trim() || undefined, password, notifications: true });
   };
 
   return (
@@ -35,8 +37,8 @@ export default function SignInSheet() {
           <View style={styles.icon}>
             <Heart size={26} color={Colors.white} fill={Colors.white} />
           </View>
-          <Text style={styles.title}>{t('auth.title')}</Text>
-          <Text style={styles.body}>{t('auth.text')}</Text>
+          <Text style={styles.title}>{t('auth.registerTitle')}</Text>
+          <Text style={styles.body}>{t('auth.registerText')}</Text>
           <TextInput
             style={styles.input}
             placeholder={t('auth.name')}
@@ -55,9 +57,29 @@ export default function SignInSheet() {
             keyboardType="phone-pad"
             accessibilityLabel={t('auth.phone')}
           />
-          {error && <Text style={styles.error}>{t('auth.invalid')}</Text>}
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.email')}
+            placeholderTextColor={Colors.textFaint}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            accessibilityLabel={t('auth.email')}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.password')}
+            placeholderTextColor={Colors.textFaint}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            accessibilityLabel={t('auth.password')}
+          />
+          {error === 'fields' && <Text style={styles.error}>{t('auth.invalid')}</Text>}
+          {error === 'password' && <Text style={styles.error}>{t('auth.invalidPassword', { n: MIN_PASSWORD })}</Text>}
           <Pressable style={styles.submit} onPress={submit} accessibilityRole="button">
-            <Text style={styles.submitText}>{t('auth.submit')}</Text>
+            <Text style={styles.submitText}>{t('auth.register')}</Text>
           </Pressable>
           <Pressable onPress={dismissSheet} hitSlop={8}>
             <Text style={styles.later}>{t('auth.cancel')}</Text>

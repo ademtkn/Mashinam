@@ -17,8 +17,6 @@ import * as Haptics from 'expo-haptics';
 import {
   ChevronLeft,
   ChevronRight,
-  FileCheck2,
-  FileX2,
   Fuel,
   Gauge,
   Heart,
@@ -27,9 +25,6 @@ import {
   Play,
   Eye,
   Share2,
-  ShieldAlert,
-  ShieldCheck,
-  User,
   Volume2,
   VolumeX,
 } from 'lucide-react-native';
@@ -48,7 +43,6 @@ const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
 
 const NATIVE_DRIVER = Platform.OS !== 'web';
 const DOUBLE_TAP_MS = 280;
-const GREEN = '#10B981';
 const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n));
 
 interface Props {
@@ -64,11 +58,11 @@ interface Props {
   onDoubleTapFavorite: (id: string) => void;
 }
 
-function Spec({ icon, value, color }: { icon: React.ReactNode; value: string; color?: string }) {
+function Spec({ icon, value }: { icon: React.ReactNode; value: string }) {
   return (
     <View style={styles.spec}>
       {icon}
-      <Text style={[styles.specText, color ? { color } : null]}>{value}</Text>
+      <Text style={styles.specText}>{value}</Text>
     </View>
   );
 }
@@ -330,24 +324,10 @@ function CarFeedCard({
               <Spec icon={<Joystick size={15} color={Colors.amber} />} value={label.transmission(lang, car.transmission)} />
               <Spec icon={<Gauge size={15} color={Colors.amber} />} value={formatKm(car.mileageKm)} />
               <Spec icon={<MapPin size={15} color={Colors.amber} />} value={label.city(lang, car.city)} />
-            </View>
-            {/* The three things a buyer in KG asks first: where it's from, accidents, customs. */}
-            <View style={styles.specs}>
               <Spec
                 icon={<Text style={styles.flag}>{IMPORT_FLAG[car.importedFrom]}</Text>}
                 value={label.importedFrom(lang, car.importedFrom)}
               />
-              <Spec
-                icon={car.accidentFree ? <ShieldCheck size={15} color={GREEN} /> : <ShieldAlert size={15} color={Colors.danger} />}
-                value={car.accidentFree ? t('card.accidentFree') : t('card.hadAccident')}
-                color={car.accidentFree ? GREEN : Colors.danger}
-              />
-              <Spec
-                icon={car.customsCleared ? <FileCheck2 size={15} color={GREEN} /> : <FileX2 size={15} color={Colors.danger} />}
-                value={car.customsCleared ? t('card.customs') : t('card.noCustoms')}
-                color={car.customsCleared ? GREEN : Colors.danger}
-              />
-              <Spec icon={<User size={15} color={Colors.amber} />} value={t('card.owners', { n: car.owners })} />
             </View>
           </View>
 
