@@ -3,7 +3,7 @@ import { mockCars2 } from '../data/mockCars2';
 import { videoCars } from '../data/videoCars';
 import type { Car, CarFilters, PriceRangeId } from '../types/car';
 import { shuffle } from '../utils/shuffle';
-import { isNew } from '../utils/time';
+import { isLive, isNew } from '../utils/time';
 
 // Phase 2: replace the body of these functions with Supabase queries.
 // Screens only talk to this module, so nothing else needs to change.
@@ -17,7 +17,8 @@ export const PRICE_RANGES: { id: PriceRangeId; label: string; min: number; max: 
 
 export async function fetchCars(): Promise<Car[]> {
   await new Promise((r) => setTimeout(r, 350));
-  return [...mockCars, ...mockCars2, ...videoCars];
+  // Expired listings (older than LISTING_LIFETIME_DAYS) never reach the feed.
+  return [...mockCars, ...mockCars2, ...videoCars].filter((c) => isLive(c.createdAt));
 }
 
 export const isPriceDrop = (c: Car) => c.oldPriceUsd !== undefined && c.oldPriceUsd > c.priceUsd;

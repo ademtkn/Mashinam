@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useLang } from '../context/LanguageContext';
 import type { Car } from '../types/car';
-import { isNew, timeAgo } from '../utils/time';
+import { daysLeft, isNew, timeAgo } from '../utils/time';
 
 const AVATAR_COLORS = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#EF4444', '#14B8A6', '#F97316'];
 
@@ -26,10 +26,14 @@ export default function SellerRow({ car }: { car: Car }) {
       <Text style={styles.time} numberOfLines={1}>
         · {timeAgo(car.createdAt, lang)}
       </Text>
-      {isNew(car.createdAt) && (
+      {isNew(car.createdAt) ? (
         <View style={styles.newBadge}>
           <Text style={styles.newText}>{t('card.new')}</Text>
         </View>
+      ) : (
+        <Text style={[styles.time, daysLeft(car.createdAt) <= 3 && styles.expiring]} numberOfLines={1}>
+          · {t('card.daysLeft', { n: daysLeft(car.createdAt) })}
+        </Text>
       )}
     </View>
   );
@@ -41,6 +45,7 @@ const styles = StyleSheet.create({
   initial: { color: Colors.white, fontWeight: '900', fontSize: 13 },
   name: { color: Colors.white, fontWeight: '700', fontSize: 13, flexShrink: 1 },
   time: { color: Colors.textFaint, fontSize: 12, flexShrink: 0 },
+  expiring: { color: Colors.amber },
   newBadge: { backgroundColor: '#10B981', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 },
   newText: { color: Colors.navy, fontSize: 10, fontWeight: '900', letterSpacing: 0.3 },
 });

@@ -1,3 +1,4 @@
+import { LISTING_LIFETIME_DAYS } from '../constants/config';
 import type { Lang } from '../constants/i18n';
 
 // Demo data is dated relative to "now" so "today's listings" never go stale.
@@ -6,6 +7,11 @@ export const hoursAgo = (h: number) => new Date(LOADED_AT - h * 3600_000).toISOS
 export const daysAgo = (d: number) => hoursAgo(d * 24);
 
 export const NEW_WINDOW_MS = 24 * 3600_000;
+
+// Listings live for LISTING_LIFETIME_DAYS after posting.
+export const daysLeft = (createdAt: string) =>
+  Math.ceil((Date.parse(createdAt) + LISTING_LIFETIME_DAYS * 86_400_000 - Date.now()) / 86_400_000);
+export const isLive = (createdAt: string) => daysLeft(createdAt) > 0;
 export const isNew = (iso: string) => Date.now() - Date.parse(iso) < NEW_WINDOW_MS;
 
 // "2 сағ назад" / "3 күн мурун" / "5 dk önce"

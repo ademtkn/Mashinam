@@ -5,12 +5,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { FavoritesProvider } from '../context/FavoritesContext';
 import { LanguageProvider } from '../context/LanguageContext';
+import { AuthProvider } from '../context/AuthContext';
+import SignInSheet from '../components/SignInSheet';
 import DemoContactModal from '../components/DemoContactModal';
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <LanguageProvider>
+      <AuthProvider>
       <FavoritesProvider>
         <StatusBar style="light" />
         {/* On desktop browsers, keep a phone-width column so the feed looks like the app. */}
@@ -20,7 +23,9 @@ export default function RootLayout() {
           </View>
         </View>
         <DemoContactModal />
+        <SignInSheet />
       </FavoritesProvider>
+      </AuthProvider>
       </LanguageProvider>
     </SafeAreaProvider>
   );

@@ -1,97 +1,113 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera } from 'lucide-react-native';
+import { AlertTriangle, Camera, Clock, Mail, MessageCircle, Send, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
-import type { StringKey } from '../../constants/i18n';
+import { ADMIN_CONTACTS, LISTING_LIFETIME_DAYS } from '../../constants/config';
 import { useLang } from '../../context/LanguageContext';
 
-// UI only for now. Phase 2: image picker + Supabase Storage upload + insert into `cars`.
-const FIELDS: { key: string; label: StringKey; placeholder: string; keyboard: 'default' | 'number-pad' | 'phone-pad' }[] = [
-  { key: 'brand', label: 'sell.brand', placeholder: 'Toyota', keyboard: 'default' },
-  { key: 'model', label: 'sell.model', placeholder: 'Camry', keyboard: 'default' },
-  { key: 'year', label: 'sell.year', placeholder: '2020', keyboard: 'number-pad' },
-  { key: 'price', label: 'sell.price', placeholder: '25000', keyboard: 'number-pad' },
-  { key: 'phone', label: 'sell.phone', placeholder: '+996 555 123 456', keyboard: 'phone-pad' },
-];
-
+// Listings are posted by the administrator only. This screen just gets the
+// seller in touch and sets expectations (15-day lifetime, photos, honesty).
 export default function SellScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useLang();
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [sent, setSent] = useState(false);
+  const message = encodeURIComponent(t('sell.message'));
+  const digits = ADMIN_CONTACTS.whatsappPhone.replace(/\D/g, '');
+  const open = (url: string) => Linking.openURL(url).catch(() => {});
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.heading}>{t('sell.title')}</Text>
-        <Text style={styles.sub}>{t('sell.sub')}</Text>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}>
+      <Text style={styles.heading}>{t('sell.title')}</Text>
+      <View style={styles.adminCard}>
+        <View style={styles.adminIcon}>
+          <ShieldCheck size={26} color={Colors.navy} />
+        </View>
+        <Text style={styles.adminTitle}>{t('sell.adminTitle')}</Text>
+        <Text style={styles.adminText}>{t('sell.adminText')}</Text>
+      </View>
 
-        <Pressable style={styles.photoBox}>
-          <Camera size={34} color={Colors.amber} />
-          <Text style={styles.photoText}>{t('sell.photo')}</Text>
-        </Pressable>
+      <Pressable
+        style={[styles.contact, { backgroundColor: Colors.whatsapp }]}
+        onPress={() => open(`https://wa.me/${digits}?text=${message}`)}
+        accessibilityRole="button"
+      >
+        <MessageCircle size={22} color={Colors.white} strokeWidth={2.4} />
+        <Text style={[styles.contactText, { color: Colors.white }]}>WhatsApp</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.contact, { backgroundColor: '#2AABEE' }]}
+        onPress={() => open(ADMIN_CONTACTS.telegram)}
+        accessibilityRole="button"
+      >
+        <Send size={22} color={Colors.white} strokeWidth={2.4} />
+        <Text style={[styles.contactText, { color: Colors.white }]}>Telegram</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.contact, { backgroundColor: Colors.amber }]}
+        onPress={() => open(`mailto:${ADMIN_CONTACTS.email}?subject=Mashinam&body=${message}`)}
+        accessibilityRole="button"
+      >
+        <Mail size={22} color={Colors.navy} strokeWidth={2.4} />
+        <Text style={[styles.contactText, { color: Colors.navy }]}>E-mail</Text>
+      </Pressable>
 
-        {FIELDS.map((f) => (
-          <View key={f.key} style={styles.field}>
-            <Text style={styles.label}>{t(f.label)}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={f.placeholder}
-              placeholderTextColor={Colors.textFaint}
-              keyboardType={f.keyboard}
-              value={values[f.key] ?? ''}
-              onChangeText={(text) => setValues((v) => ({ ...v, [f.key]: text }))}
-            />
-          </View>
-        ))}
-
-        <Pressable style={styles.submit} onPress={() => setSent(true)}>
-          <Text style={styles.submitText}>{t('sell.publish')}</Text>
-        </Pressable>
-        {sent && <Text style={styles.note}>{t('sell.note')}</Text>}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <View style={styles.rules}>
+        <View style={styles.rulesHeader}>
+          <AlertTriangle size={18} color={Colors.amber} />
+          <Text style={styles.rulesTitle}>{t('sell.rulesTitle')}</Text>
+        </View>
+        <View style={styles.rule}>
+          <Clock size={16} color={Colors.amber} />
+          <Text style={styles.ruleText}>{t('sell.rule15', { n: LISTING_LIFETIME_DAYS })}</Text>
+        </View>
+        <View style={styles.rule}>
+          <Camera size={16} color={Colors.amber} />
+          <Text style={styles.ruleText}>{t('sell.rulePhotos')}</Text>
+        </View>
+        <View style={styles.rule}>
+          <ShieldCheck size={16} color={Colors.amber} />
+          <Text style={styles.ruleText}>{t('sell.ruleHonest')}</Text>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.navy },
-  content: { padding: 16, gap: 14, paddingBottom: 40 },
-  heading: { color: Colors.white, fontSize: 28, fontWeight: '900' },
-  sub: { color: Colors.textMuted, marginTop: -6 },
-  photoBox: {
-    height: 150,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: Colors.amber,
+  content: { padding: 16, gap: 12, paddingBottom: 40 },
+  heading: { color: Colors.white, fontSize: 28, fontWeight: '900', marginBottom: 4 },
+  adminCard: {
     backgroundColor: Colors.navyLight,
+    borderRadius: 20,
+    padding: 18,
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 8,
-  },
-  photoText: { color: Colors.white, fontWeight: '700' },
-  field: { gap: 6 },
-  label: { color: Colors.textMuted, fontSize: 13, fontWeight: '700' },
-  input: {
-    height: 50,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    backgroundColor: Colors.navyLight,
-    color: Colors.white,
-    fontSize: 16,
     borderWidth: 1,
     borderColor: Colors.glassBorder,
   },
-  submit: {
-    marginTop: 6,
+  adminIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.amber, alignItems: 'center', justifyContent: 'center' },
+  adminTitle: { color: Colors.white, fontSize: 17, fontWeight: '800', textAlign: 'center' },
+  adminText: { color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
+  contact: {
     height: 56,
     borderRadius: 18,
-    backgroundColor: Colors.amber,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 10,
   },
-  submitText: { color: Colors.navy, fontSize: 17, fontWeight: '900' },
-  note: { color: Colors.amber, textAlign: 'center', fontSize: 13 },
+  contactText: { fontSize: 17, fontWeight: '800' },
+  rules: {
+    marginTop: 6,
+    borderRadius: 18,
+    padding: 16,
+    gap: 12,
+    backgroundColor: 'rgba(255,176,32,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,176,32,0.5)',
+  },
+  rulesHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rulesTitle: { color: Colors.amber, fontWeight: '900', fontSize: 15, letterSpacing: 0.3 },
+  rule: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  ruleText: { color: Colors.white, flex: 1, lineHeight: 20, fontSize: 14 },
 });

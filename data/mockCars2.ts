@@ -30,7 +30,7 @@ export const mockCars2: Car[] = [
     sellerName: "Gülnara",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(858),
+    createdAt: hoursAgo(284),
   },
   {
     id: 'd2',
@@ -56,7 +56,7 @@ export const mockCars2: Car[] = [
     sellerName: "Gülnara",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(877),
+    createdAt: hoursAgo(303),
   },
   {
     id: 'd3',
@@ -81,7 +81,7 @@ export const mockCars2: Car[] = [
     sellerName: "Nurlan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(379),
+    createdAt: hoursAgo(105),
   },
   {
     id: 'd4',
@@ -105,7 +105,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ermek",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(890),
+    createdAt: hoursAgo(316),
   },
   {
     id: 'd5',
@@ -131,7 +131,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ermek",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(403),
+    createdAt: hoursAgo(129),
   },
   {
     id: 'd6',
@@ -183,7 +183,7 @@ export const mockCars2: Car[] = [
     sellerName: "Mirlan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(737),
+    createdAt: hoursAgo(163),
   },
   {
     id: 'd8',
@@ -208,7 +208,7 @@ export const mockCars2: Car[] = [
     sellerName: "Gülnara",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(774),
+    createdAt: hoursAgo(200),
   },
   {
     id: 'd9',
@@ -235,7 +235,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ruslan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(412),
+    createdAt: hoursAgo(138),
   },
   {
     id: 'd10',
@@ -285,7 +285,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ruslan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(599),
+    createdAt: hoursAgo(325),
   },
   {
     id: 'd12',
@@ -360,7 +360,7 @@ export const mockCars2: Car[] = [
     sellerName: "Daniyar",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(817),
+    createdAt: hoursAgo(243),
   },
   {
     id: 'd15',
@@ -385,7 +385,7 @@ export const mockCars2: Car[] = [
     sellerName: "Aibek",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(374),
+    createdAt: hoursAgo(100),
   },
   {
     id: 'd16',
@@ -410,7 +410,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ruslan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(372),
+    createdAt: hoursAgo(98),
   },
   {
     id: 'd17',
@@ -461,7 +461,7 @@ export const mockCars2: Car[] = [
     sellerName: "Cıldız",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(582),
+    createdAt: hoursAgo(308),
   },
   {
     id: 'd19',
@@ -587,7 +587,7 @@ export const mockCars2: Car[] = [
     sellerName: "Bakıt",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(852),
+    createdAt: hoursAgo(278),
   },
   {
     id: 'd24',
@@ -612,7 +612,7 @@ export const mockCars2: Car[] = [
     sellerName: "Erlan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(851),
+    createdAt: hoursAgo(277),
   },
   {
     id: 'd25',
@@ -662,7 +662,7 @@ export const mockCars2: Car[] = [
     sellerName: "Cıldız",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(372),
+    createdAt: hoursAgo(98),
   },
   {
     id: 'd27',
@@ -712,7 +712,7 @@ export const mockCars2: Car[] = [
     sellerName: "Talant",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(456),
+    createdAt: hoursAgo(182),
   },
   {
     id: 'd29',
@@ -737,7 +737,7 @@ export const mockCars2: Car[] = [
     sellerName: "Talant",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(418),
+    createdAt: hoursAgo(144),
   },
   {
     id: 'd30',
@@ -762,7 +762,7 @@ export const mockCars2: Car[] = [
     sellerName: "Almaz",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(476),
+    createdAt: hoursAgo(202),
   },
   {
     id: 'd31',
@@ -812,7 +812,7 @@ export const mockCars2: Car[] = [
     sellerName: "Kanat",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(755),
+    createdAt: hoursAgo(181),
   },
   {
     id: 'd33',
@@ -862,7 +862,7 @@ export const mockCars2: Car[] = [
     sellerName: "Erlan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(428),
+    createdAt: hoursAgo(154),
   },
   {
     id: 'd35',
@@ -887,7 +887,7 @@ export const mockCars2: Car[] = [
     sellerName: "Daniyar",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(361),
+    createdAt: hoursAgo(87),
   },
   {
     id: 'd36',
@@ -912,7 +912,7 @@ export const mockCars2: Car[] = [
     sellerName: "Talant",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(489),
+    createdAt: hoursAgo(215),
   },
   {
     id: 'd37',
@@ -937,7 +937,7 @@ export const mockCars2: Car[] = [
     sellerName: "Erlan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(361),
+    createdAt: hoursAgo(87),
   },
   {
     id: 'd38',
@@ -1011,7 +1011,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ulan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(803),
+    createdAt: hoursAgo(229),
   },
   {
     id: 'd41',
@@ -1060,7 +1060,7 @@ export const mockCars2: Car[] = [
     sellerName: "Asel",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(927),
+    createdAt: hoursAgo(53),
   },
   {
     id: 'd43',
@@ -1085,7 +1085,7 @@ export const mockCars2: Car[] = [
     sellerName: "Daniyar",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(749),
+    createdAt: hoursAgo(175),
   },
   {
     id: 'd44',
@@ -1110,7 +1110,7 @@ export const mockCars2: Car[] = [
     sellerName: "Erlan",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(875),
+    createdAt: hoursAgo(301),
   },
   {
     id: 'd45',
@@ -1135,7 +1135,7 @@ export const mockCars2: Car[] = [
     sellerName: "Bolot",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(531),
+    createdAt: hoursAgo(257),
   },
   {
     id: 'd46',
@@ -1160,7 +1160,7 @@ export const mockCars2: Car[] = [
     sellerName: "Ermek",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(356),
+    createdAt: hoursAgo(82),
   },
   {
     id: 'd47',
@@ -1213,7 +1213,7 @@ export const mockCars2: Car[] = [
     sellerName: "Kubat",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(955),
+    createdAt: hoursAgo(81),
   },
   {
     id: 'd49',
@@ -1238,7 +1238,7 @@ export const mockCars2: Car[] = [
     sellerName: "Bakıt",
     sellerPhone: '+996502001903',
     whatsappPhone: '+996502001903',
-    createdAt: hoursAgo(552),
+    createdAt: hoursAgo(278),
   },
   {
     id: 'd50',
