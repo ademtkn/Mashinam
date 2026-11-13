@@ -77,8 +77,7 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   (edit details, notifications toggle, sign out, delete account), guest encouragement. All live.
 
 ## In progress / blocked
-- Nothing in progress in this repo. InstaHouse mirror of the 2026-11-13 changes was being done by an agent
-  (see `../InstaHouse/HANDOFF.md`).
+- Nothing in progress. The InstaHouse mirror of the 2026-11-13 changes is done and live (`../InstaHouse/HANDOFF.md`).
 
 ## Next (owner's roadmap, in priority order)
 1. Real admin Telegram handle and e-mail in `constants/config.ts`.
