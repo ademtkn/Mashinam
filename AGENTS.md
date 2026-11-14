@@ -75,6 +75,8 @@ Native config exists (bundle IDs, adaptive icon, splash) but no native build has
   "Пользователь/Kullanıcı" default name.
 - **Verified locally:** `npx tsc --noEmit` and `npx expo lint` pass; web export; CDP-tested sign-in OTP, sell form
   preview, legal sheet, city filter, pull/tab refresh.
+- **Published:** main `196994c`, `gh-pages` `8109fbf`; live at https://ademtkn.github.io/Mashinam/ and verified
+  (feed images 960 px, new filter labels).
 
 **Still local / not done:** real WhatsApp OTP provider, Supabase data layer, native build & device test, tablet
 2-3 column grid, saved searches, analytics/Sentry, real admin Telegram/e-mail, company X legal entity, InstaHouse

@@ -112,7 +112,8 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   privacy/terms for company X + consent checkboxes and screens; structured admin WhatsApp listing form; 15-city
   KG-wide filter; every refresh reshuffles unseen cards and keeps seen ones below (3 s threshold); tablet/web
   centred frame; 960 px Commons images; profile polish. `tsc`/lint pass; web export; CDP-tested sign-in, sell form,
-  legal sheet, city filter, pull/tab refresh. **Not published yet at the time of writing.**
+  legal sheet, city filter, pull/tab refresh. **Published to `gh-pages` (8109fbf) and verified live
+  (https://ademtkn.github.io/Mashinam/, entry-8adf45c034ab9c39bbbb072462827851.js); main source 196994c.**
 
 ## In progress / blocked
 - **Real WhatsApp OTP** is not implemented. `LOCAL_AUTH_DEMO=true` is on-device only; set it to false and wire
