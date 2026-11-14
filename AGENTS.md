@@ -75,8 +75,8 @@ Debug and release Android builds have been produced and tested on a physical Poc
   "Пользователь/Kullanıcı" default name.
 - **Verified locally:** `npx tsc --noEmit` and `npx expo lint` pass; web export; CDP-tested sign-in OTP, sell form
   preview, legal sheet, city filter, pull/tab refresh.
-- **Published:** main `196994c`, `gh-pages` `8109fbf`; live at https://ademtkn.github.io/Mashinam/ and verified
-  (feed images 960 px, new filter labels). The later Android-only changes below do not affect the web preview.
+- **Published:** main `8e6d795`, `gh-pages` `79f23c8`; live at https://ademtkn.github.io/Mashinam/ and verified
+  (cleaned build, feed images 960 px, new filter labels). The web preview was rebuilt after the cleanup.
 
 ### 2026-11-14 — Android device pass
 - Device: Xiaomi Poco X3 Pro (`M2102J20SG`, Android 12/API 31, arm64-v8a). Built with `npx expo run:android`
@@ -104,6 +104,11 @@ Debug and release Android builds have been produced and tested on a physical Poc
   the app is visually dark regardless. Add it before relying on system dark-mode APIs.
 - `android/` is generated and gitignored; never edit it by hand. The debug app needs Metro (`npx expo start`, `adb reverse tcp:8081 tcp:8081`).
 
+**Session close (2026-11-14):** final Mashinam state is `main 8e6d795` / `gh-pages 79f23c8`; the standalone
+release APK is installed on the Poco X3 Pro. The next chat continues in `../InstaHouse` and must read its
+`HANDOFF.md` → "Incoming port from Mashinam (2026-11-14)"; adapt the patterns to real estate, do not copy the
+car icon or car legal text.
+
 **Still local / not done:** real WhatsApp OTP provider, Supabase data layer, EAS build / store signing, tablet
 2-3 column grid, saved searches, analytics/Sentry, real admin Telegram/e-mail, company X legal entity, InstaHouse
-mirror (needs a real-estate adaptation; owner to confirm).
+port (next chat; the checklist is ready in its HANDOFF).

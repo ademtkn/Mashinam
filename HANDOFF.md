@@ -3,8 +3,8 @@
 > Bu dosya, projede çalışan her yapay zeka asistanı (Claude, Codex, …) ve insan için
 > devir notudur. **Bir göreve başlamadan önce oku; görevi bitirince "Done log" ve
 > "Next" bölümlerini güncelle.** Owner Türkçe yazar; kod ve commit mesajları İngilizce.
-> **2026-11-14: çalışma local-only.** Web (GitHub Pages) yalnızca iç önizleme; native
-> yapılandırma hazır ama henüz native build alınmadı.
+> **2026-11-14:** Web (GitHub Pages) yalnızca iç önizleme; Android debug + release build'leri
+> fiziksel telefonda test edildi. iOS henüz cihazda denenmedi.
 
 ## What this is
 Instagram/Reels-style vertical feed for used-car listings in Kyrgyzstan.
@@ -16,8 +16,8 @@ through a structured WhatsApp form; the service is completely free. Phase 2 = Su
 - Live preview: https://ademtkn.github.io/Mashinam/
 - Sibling project: InstaHouse (`../InstaHouse`, same structure, real-estate). The owner's
   standing rule: **every task given for Mashinam must also be applied to InstaHouse** (and
-  vice versa where it makes sense). **The 2026-11-14 pass is not mirrored yet** — the legal
-  text, cities and seller form need a real-estate adaptation; confirm with the owner first.
+  vice versa where it makes sense). **The 2026-11-14 pass is ready to port**; the next chat continues
+  in InstaHouse/HANDOFF.md → "Incoming port from Mashinam (2026-11-14)".
 
 ## Run / check / publish
 ```bash
@@ -152,8 +152,21 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   videos are needed before store submission.
 - **Admin contacts:** `ADMIN_CONTACTS.telegram` and `admin@mashinam.kg` are placeholders.
 - **Analytics/Sentry/Supabase/push** are not installed.
-- **InstaHouse mirror** of this pass is not done (needs real-estate adaptation; owner to confirm).
+- **InstaHouse port** is prepared (handoff only); the next chat applies the "Incoming port" checklist. No
+  feature work has been done in InstaHouse yet.
 - The GitHub Actions Pages workflow is still blocked by the account billing lock; publishing stays manual.
+
+## Session close & InstaHouse handoff (2026-11-14)
+
+- Mashinam final state: `main` `8e6d795`, `gh-pages` `79f23c8`; live https://ademtkn.github.io/Mashinam/.
+  Standalone release APK: `android/app/build/outputs/apk/release/app-release.apk` (34 MB, arm64, local
+  debug keystore). `tsc`/lint pass; web smoke test and Android feed/nav-bar verified.
+- Next chat: open `../InstaHouse` and read `InstaHouse/HANDOFF.md` → **"Incoming port from Mashinam (2026-11-14)"**.
+  Port the patterns, not the car content. Keep InstaHouse's `CurrencySwitch`/`CurrencyContext` (USD/som) and
+  its real-estate fields (dealType, property type, rooms, area, floor, documents, condition, furnished).
+  Do **not** copy the car "M" icon or the car-specific legal text; rewrite the legal docs for real estate.
+- Ledger of the reference pass: `ed233be` (brand/auth/legal/admin form/cities/feed), `196994c` (960 px),
+  `53f47a6` (Android nav bar/release), `b6254ca` (release image transition), `8e6d795` (cleanup).
 
 ## Next (owner's roadmap, in priority order)
 1. Legal review + real company/contact details (replace X, `admin@mashinam.kg`, bundle IDs/domain).
