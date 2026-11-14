@@ -25,6 +25,11 @@ npm ci
 npx expo start                      # dev server (web: press w)
 npx tsc --noEmit && npx expo lint    # must both pass before any commit
 EXPO_BASE_URL=/Mashinam npx expo export --platform web   # production web build -> dist/
+
+# Native Android (device connected; android/ is generated, gitignored)
+npx expo run:android --device <adb-id>                  # debug build + Metro
+cd android && ./gradlew app:assembleDebug -PreactNativeArchitectures=arm64-v8a
+cd android && ./gradlew app:assembleRelease -PreactNativeArchitectures=arm64-v8a
 ```
 Publishing is **manual** (the owner's GitHub account is billing-locked, so the
 `.github/workflows/deploy-pages.yml` workflow never runs):
@@ -56,6 +61,13 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
 - **Legal links** open `LegalSheet` (a sibling `Modal`) from sign-in / listing, and the full-page routes
   `/legal/privacy`, `/legal/terms` from Profile.
 - Storage keys: `mashinam.user.v1`, `mashinam.favorites.v1.<phone>`, `mashinam.lang.v1`, `mashinam.seenCars.v1`.
+- **Android device (Xiaomi/MIUI):** `adb install` fails with `INSTALL_FAILED_USER_RESTRICTED` even with
+  "Install via USB" enabled; the `AdbInstallActivity` prompt auto-rejects and ignores injected taps. Workaround:
+  `adb push` the APK to `/sdcard/Download/`, open it from Downloads (`am start -a android.intent.action.VIEW_DOWNLOADS
+  -p com.google.android.documentsui`), then tap DEVAM → GÜNCELLE/Yükle. `uiautomator dump` gives exact bounds;
+  the standard installer accepts `input tap`. The debug app needs Metro: `adb reverse tcp:8081 tcp:8081`.
+- The system navigation bar is painted navy at runtime by `expo-navigation-bar` (`utils/navigationBar.android.ts`,
+  `NavigationBar.setStyle('dark')` + plugin `enforceContrast: false`).
 - `expo export` prints "Files (3)" but still copies `public/` into `dist/`; check `dist/media` exists (~39 MB).
 - Commons only serves the pre-generated widths **330 / 500 / 960 / 1280 px**; other widths (640/800/1024) return HTTP 400. `CarFeedCard` uses 330 for the blurred fill and 960 for the main photo.
 - CDP `.click()` on a leaf `Text` may not trigger a React Native `Pressable`. Click the `[role="button"]` element
@@ -107,6 +119,10 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   9 Pexels video listings, 50 more Commons listings (117 total), 15-day lifetime, admin-only posting, device sign-in.
 - 2026-11-13 Card simplified (no accident/customs/owners labels), registration with e-mail+password, Profile tab
   (edit details, notifications toggle, sign out, delete account), guest encouragement. All live.
+- 2026-11-14 Android device pass: built/installed the debug APK on a Poco X3 Pro (Android 12); verified feed,
+  video, one-step phone + demo OTP sign-in, city modal/filter, sell form; fixed the white system navigation bar
+  with `expo-navigation-bar` (`setStyle('dark')`, `enforceContrast: false`). MIUI install workaround documented.
+  Built and verified a standalone release APK (34 MB, arm64) with Metro stopped.
 - 2026-11-14 Local app-first pass: navy/amber monogram icon + adaptive icon + splash (`tools/brand`); bundle IDs and
   `expo-splash-screen`; one-step phone + WhatsApp OTP demo (no password/e-mail, legacy password purged); legal
   privacy/terms for company X + consent checkboxes and screens; structured admin WhatsApp listing form; 15-city
@@ -120,8 +136,12 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   Supabase Auth + a provider before any public build.
 - **Legal review:** `constants/legal.ts` is a product draft for placeholder company **X**; needs a Kyrgyz
   lawyer/native review, real company details, a real contact address and a privacy-policy URL for the stores.
-- **Native build:** `app.json` has placeholder bundle IDs (`kg.mashinam.app`), but no EAS project/`eas.json` yet and
-  no device test. Xcode 27 and the Android SDK are installed locally; a dev build is the next validation step.
+- **Native build:** a debug APK and a standalone **release** APK (34 MB, arm64) have been built and tested on a
+  Poco X3 Pro (Android 12). The release build was launched with Metro stopped; feed + tab navigation work. It is
+  signed with the generated debug keystore, so it is only for local testing. Still no EAS project/`eas.json`;
+  bundle IDs are placeholders (`kg.mashinam.app`).
+- **`expo-system-ui`:** not installed, so the declarative dark `userInterfaceStyle` is not applied on Android. The app
+  is visually dark anyway; add it before relying on system dark-mode APIs.
 - **Tablet:** the feed is a centred 560 px column on native tablets; a 2-3 column grid is still deferred.
 - **Demo supply:** 117 demo listings, all pointing at the test number; real admin listings and owner-shot vertical
   videos are needed before store submission.

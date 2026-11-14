@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -8,12 +9,17 @@ import { LanguageProvider } from '../context/LanguageContext';
 import { AuthProvider } from '../context/AuthContext';
 import SignInSheet from '../components/SignInSheet';
 import DemoContactModal from '../components/DemoContactModal';
+import { applyAndroidNavigationBar } from '../utils/navigationBar';
 
 export default function RootLayout() {
   // iPad / Android tablets: keep the feed in a centred, phone-like column
   // instead of stretching every 9:16 card across the whole screen.
   const { width } = useWindowDimensions();
   const nativeTablet = Platform.OS !== 'web' && width >= 700;
+
+  useEffect(() => {
+    applyAndroidNavigationBar();
+  }, []);
 
   return (
     <SafeAreaProvider>

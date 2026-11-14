@@ -38,6 +38,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#0B1426"
         }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false
+        }
       ]
     ],
     "scheme": "mashinam",
