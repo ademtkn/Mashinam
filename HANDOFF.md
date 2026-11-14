@@ -3,18 +3,21 @@
 > Bu dosya, projede çalışan her yapay zeka asistanı (Claude, Codex, …) ve insan için
 > devir notudur. **Bir göreve başlamadan önce oku; görevi bitirince "Done log" ve
 > "Next" bölümlerini güncelle.** Owner Türkçe yazar; kod ve commit mesajları İngilizce.
+> **2026-11-14: çalışma local-only.** Web (GitHub Pages) yalnızca iç önizleme; native
+> yapılandırma hazır ama henüz native build alınmadı.
 
 ## What this is
 Instagram/Reels-style vertical feed for used-car listings in Kyrgyzstan.
-Expo SDK 58 + Expo Router + TypeScript, runs as a web app (GitHub Pages) and as a
-native app (not yet built). Phase 1 = frontend with demo data; Phase 2 = Supabase
-(auth with SMS, listings, favourites, push).
+Expo SDK 58 + Expo Router + TypeScript. Listings are posted by the administrator only,
+through a structured WhatsApp form; the service is completely free. Phase 2 = Supabase
+(listings, favourites, storage/CDN, push) + a real WhatsApp OTP provider.
 
 - Repo: https://github.com/ademtkn/Mashinam (branch `main` = source, `gh-pages` = built site)
-- Live: https://ademtkn.github.io/Mashinam/
+- Live preview: https://ademtkn.github.io/Mashinam/
 - Sibling project: InstaHouse (`../InstaHouse`, same structure, real-estate). The owner's
   standing rule: **every task given for Mashinam must also be applied to InstaHouse** (and
-  vice versa where it makes sense).
+  vice versa where it makes sense). **The 2026-11-14 pass is not mirrored yet** — the legal
+  text, cities and seller form need a real-estate adaptation; confirm with the owner first.
 
 ## Run / check / publish
 ```bash
@@ -36,37 +39,65 @@ Commit messages end with a `Co-Authored-By:` line naming the assistant that wrot
 ## Testing the web build (what has worked)
 Serve `dist/` under the base path (`mkdir site && cp -R dist site/Mashinam && cd site && python3 -m http.server 8099`)
 and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome`,
-`devices['iPhone 13']`). Gotchas:
+`devices['iPhone 13']`) or raw CDP. Gotchas:
 - **Never scroll the feed programmatically** (`scrollTo`/`scrollTop`): Chrome's scroll-snap snaps back to card 0.
   Use slow touch drags via CDP `Input.dispatchTouchEvent` (one card per drag). Pull-to-refresh = drag down from the top.
-- Far cards render as empty placeholders on web, so only ~3 titles exist in the DOM at a time.
-- A card active ≥ 1.5 s is marked "seen" (localStorage `mashinam.seenCars.v1`) and changes the next load's order.
+- `Page.captureScreenshot` with `--virtual-time-budget` can capture before React Native's `Animated` reveal finishes
+  (the card looks empty). Wait with real time / CDP instead.
+- A card active **≥ 3 s** is marked "seen" (localStorage `mashinam.seenCars.v1`) and changes the next load's order.
+  On every pull / tab press the unseen pool is reshuffled; seen cards stay below.
 - `?car=<id>` pins a listing to the top — use it to screenshot a specific card.
-- `python3 -m http.server` has no SPA fallback: don't `reload()` on `/Mashinam/profile`; GitHub Pages serves `404.html` so it works live.
+- `python3 -m http.server` has no SPA fallback: don't `reload()` on `/Mashinam/profile`; GitHub Pages serves
+  `404.html` so it works live. Use the in-app tab links for screenshots.
 - `Alert.alert` is a no-op on react-native-web; use in-app confirmations.
 - Deferred actions run after sign-in must receive the user as an argument (closures captured before sign-in see `user = null`).
+- **Local sign-in demo:** `LOCAL_AUTH_DEMO = true` in `constants/config.ts`; the 6-digit code is shown in the
+  sheet as "Демо-код: XXXXXX". No network/OTP provider is involved.
+- **Legal links** open `LegalSheet` (a sibling `Modal`) from sign-in / listing, and the full-page routes
+  `/legal/privacy`, `/legal/terms` from Profile.
 - Storage keys: `mashinam.user.v1`, `mashinam.favorites.v1.<phone>`, `mashinam.lang.v1`, `mashinam.seenCars.v1`.
+- `expo export` prints "Files (3)" but still copies `public/` into `dist/`; check `dist/media` exists (~39 MB).
+- CDP `.click()` on a leaf `Text` may not trigger a React Native `Pressable`. Click the `[role="button"]` element
+  or dispatch a real mouse/touch event at its bounding box.
 
 ## Conventions & product decisions
 - Every seller phone number is the owner's test number **+996 502 00 19 03**; `DEMO_MODE` (constants/config.ts) is off so
   WhatsApp/Call really open wa.me / tel:. Keep it that way until real listings exist.
 - UI languages: Russian (default), Kyrgyz, Turkish — `constants/i18n.ts`. Every new string goes into all three.
   The Kyrgyz strings were written by non-native speakers; the owner should review them.
-- Listings expire **15 days** after `createdAt` (`LISTING_LIFETIME_DAYS`). Demo dates are relative to "now" and clamped ≤ 14 days.
-- Only the admin posts listings: the "Подать" tab shows WhatsApp / Telegram / e-mail buttons (`ADMIN_CONTACTS`).
-  Telegram link and `admin@mashinam.kg` are **placeholders** until the owner provides real ones.
-- Accounts are on-device only (name, phone, optional e-mail, password ≥ 4, notifications flag). The app is fully usable
-  without an account; only liking/favourites require one.
+- **Accounts are one-step:** phone (+996) + WhatsApp OTP. No password, no e-mail in the form; name optional.
+  `LOCAL_AUTH_DEMO` generates the code on-device for local testing; replace it with a real provider before release
+  (Supabase Auth + Send SMS Hook → local SMS, or WhatsApp via Twilio Verify). Legacy plaintext passwords are
+  removed from AsyncStorage on load.
+- **Consent:** sign-in has a privacy/terms checkbox; the listing form has a separate consent for publishing the
+  seller's phone/WhatsApp. The legal texts are drafts for placeholder company **X** and need a Kyrgyz lawyer review.
+- Listings expire **15 days** after `createdAt` (`LISTING_LIFETIME_DAYS`). Demo dates are relative to "now".
+- Only the admin posts listings. The "Подать" tab is a structured form that composes a Russian message and opens
+  the admin WhatsApp; photos are attached in the chat. `ADMIN_CONTACTS` (Telegram/e-mail) are **placeholders**.
+- The service is **free**: no paid placement, no commission, no banners.
+- Cities: 15 across Kyrgyzstan (`types/car.ts`, `constants/cities.ts`); the feed has a city filter and defaults
+  to "Кыргызстан". Demo listings were spread to Batken, Cholpon-Ata, Kara-Balta and Uzgen.
+- Feed order: unseen listings first (shuffled on every load **and every refresh/tab press**, even with filters),
+  then already-seen ones in a stable order with a wavy "you've seen everything below" divider on the first seen card.
 - Demo photos come from Wikimedia Commons (CC/PD, credit shown on each card) and videos from Pexels; **never** copy
   photos from mashina.kg / lalafo (real sellers' copyrighted photos). Generator scripts: `tools/listings/README.md`.
-- Feed order: unseen listings first (shuffled on every load/refresh), then already-seen ones in a stable order with a
-  wavy "you've seen everything below" divider on the first seen card; all seen → full shuffle.
+- Brand: navy `#0B1426` + amber `#FFB020`, "M" monogram. Regenerate assets with
+  `python3 tools/brand/generate_assets.py`. Bundle IDs are placeholders: `kg.mashinam.app`.
 
 ## Code map
-- `app/(tabs)/index.tsx` feed (pull-to-refresh, seen tracking, deep link, language switch) · `favorites.tsx` · `sell.tsx` (admin contacts) · `profile.tsx`
-- `components/CarFeedCard.tsx` full-screen card (gallery, video, seller row, price drop, share) · `FilterBar.tsx` · `SignInSheet.tsx` · `SeenDivider.tsx` · `SellerRow.tsx` · `ActionButtons.tsx` (WhatsApp/call/share)
-- `context/` Auth, Favorites, Language · `hooks/` usePullToRefresh, useSeenCars · `services/carService.ts` (data access; swap for Supabase in phase 2)
+- `app/(tabs)/index.tsx` feed (pull-to-refresh, seen tracking, deep link, language switch, city filter) ·
+  `favorites.tsx` · `sell.tsx` (admin WhatsApp listing form) · `profile.tsx` (account, legal links, delete)
+- `app/legal/privacy.tsx`, `app/legal/terms.tsx` · `app/_layout.tsx` (providers, tablet frame)
+- `components/CarFeedCard.tsx` full-screen card (gallery, video, seller row, price drop, share) ·
+  `FilterBar.tsx` (brand/price/city) · `SignInSheet.tsx` (phone + WhatsApp OTP demo) · `LegalSheet.tsx` ·
+  `LegalScreen.tsx` · `LegalDocumentView.tsx` · `ConsentCheck.tsx` · `SeenDivider.tsx` · `SellerRow.tsx` ·
+  `ActionButtons.tsx` (WhatsApp/call/share)
+- `constants/legal.ts` (RU/KY/TR privacy + terms, company X) · `constants/cities.ts` · `constants/config.ts`
+  (`DEMO_MODE`, `LOCAL_AUTH_DEMO`, `LISTING_LIFETIME_DAYS`, `ADMIN_CONTACTS`) · `constants/i18n.ts`
+- `context/` Auth, Favorites, Language · `hooks/` usePullToRefresh, useSeenCars · `utils/phone.ts` ·
+  `services/carService.ts` (data access; swap for Supabase in phase 2)
 - `data/mockCars.ts`, `mockCars2.ts`, `videoCars.ts` (117 listings) · `public/media/` Pexels clips re-encoded to 720×1280
+- `tools/brand/generate_assets.py` (icon/splash) · `tools/listings/` (demo listing generators)
 
 ## Done log
 - 2026-11-10 Prototype: vertical feed, gallery swipe, filters, WhatsApp/call buttons, favourites, first 50 demo listings.
@@ -75,15 +106,35 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   9 Pexels video listings, 50 more Commons listings (117 total), 15-day lifetime, admin-only posting, device sign-in.
 - 2026-11-13 Card simplified (no accident/customs/owners labels), registration with e-mail+password, Profile tab
   (edit details, notifications toggle, sign out, delete account), guest encouragement. All live.
+- 2026-11-14 Local app-first pass: navy/amber monogram icon + adaptive icon + splash (`tools/brand`); bundle IDs and
+  `expo-splash-screen`; one-step phone + WhatsApp OTP demo (no password/e-mail, legacy password purged); legal
+  privacy/terms for company X + consent checkboxes and screens; structured admin WhatsApp listing form; 15-city
+  KG-wide filter; every refresh reshuffles unseen cards and keeps seen ones below (3 s threshold); tablet/web
+  centred frame; 800 px Commons images; profile polish. `tsc`/lint pass; web export; CDP-tested sign-in, sell form,
+  legal sheet, city filter, pull/tab refresh. **Not published yet at the time of writing.**
 
 ## In progress / blocked
-- Nothing in progress. The InstaHouse mirror of the 2026-11-13 changes is done and live (`../InstaHouse/HANDOFF.md`).
+- **Real WhatsApp OTP** is not implemented. `LOCAL_AUTH_DEMO=true` is on-device only; set it to false and wire
+  Supabase Auth + a provider before any public build.
+- **Legal review:** `constants/legal.ts` is a product draft for placeholder company **X**; needs a Kyrgyz
+  lawyer/native review, real company details, a real contact address and a privacy-policy URL for the stores.
+- **Native build:** `app.json` has placeholder bundle IDs (`kg.mashinam.app`), but no EAS project/`eas.json` yet and
+  no device test. Xcode 27 and the Android SDK are installed locally; a dev build is the next validation step.
+- **Tablet:** the feed is a centred 560 px column on native tablets; a 2-3 column grid is still deferred.
+- **Demo supply:** 117 demo listings, all pointing at the test number; real admin listings and owner-shot vertical
+  videos are needed before store submission.
+- **Admin contacts:** `ADMIN_CONTACTS.telegram` and `admin@mashinam.kg` are placeholders.
+- **Analytics/Sentry/Supabase/push** are not installed.
+- **InstaHouse mirror** of this pass is not done (needs real-estate adaptation; owner to confirm).
+- The GitHub Actions Pages workflow is still blocked by the account billing lock; publishing stays manual.
 
 ## Next (owner's roadmap, in priority order)
-1. Real admin Telegram handle and e-mail in `constants/config.ts`.
-2. Native-speaker review of the Kyrgyz strings in `constants/i18n.ts`.
-3. Owner-shot vertical videos from the Bishkek car market to replace the Pexels clips.
-4. Phase 2: Supabase — SMS auth replacing the device account, `cars`/`favorites` tables, image/video storage with
-   resized variants (CDN), push notifications for price drops on favourites, admin upload tool.
-5. Personalised ranking from favourites/filters; "seen" + favourites synced across devices.
-6. If the GitHub billing lock is lifted: switch Pages source to "GitHub Actions" so pushes to `main` auto-deploy.
+1. Legal review + real company/contact details (replace X, `admin@mashinam.kg`, bundle IDs/domain).
+2. Real WhatsApp OTP: Supabase Auth + Send SMS Hook (local SMS provider such as SMSPRO/Nikita) or Twilio Verify
+   WhatsApp; then `LOCAL_AUTH_DEMO=false`. Keep the one-step phone flow.
+3. Native dev build (EAS or local Xcode/Android) on a real phone and tablet; verify icon/splash, safe areas,
+   video playback, and the OTP/consent flow.
+4. Seed 200-300 real listings through the admin WhatsApp form; replace Pexels clips with owner-shot vertical videos.
+5. Supabase listings/favourites/storage + CDN variants; push for price drops/saved searches; verified seller.
+6. Tablet 2-3 column grid, analytics/Sentry, saved-search alerts, price history, report/block, store submission.
+7. Mirror the reusable parts (auth/legal/city filter) into InstaHouse with real-estate texts.

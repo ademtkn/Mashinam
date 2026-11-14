@@ -51,10 +51,10 @@ export function arrangeFeed(cars: Car[], seen: Map<string, number>, pinnedId?: s
   };
 }
 
-export const DEFAULT_FILTERS: CarFilters = { brand: null, priceRange: 'all', onlyNew: false };
+export const DEFAULT_FILTERS: CarFilters = { brand: null, city: null, priceRange: 'all', onlyNew: false };
 
 export function isDefaultFilters(f: CarFilters) {
-  return f.brand === null && f.priceRange === 'all' && !f.onlyNew;
+  return f.brand === null && f.city === null && f.priceRange === 'all' && !f.onlyNew;
 }
 
 export function getBrands(cars: Car[]): string[] {
@@ -66,6 +66,7 @@ export function filterCars(cars: Car[], filters: CarFilters): Car[] {
   return cars.filter(
     (c) =>
       (!filters.brand || c.brand === filters.brand) &&
+      (!filters.city || c.city === filters.city) &&
       c.priceUsd >= range.min &&
       c.priceUsd < range.max &&
       (!filters.onlyNew || isFresh(c)),

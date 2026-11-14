@@ -25,7 +25,6 @@ import {
   fetchCars,
   filterCars,
   getBrands,
-  isDefaultFilters,
   type FeedArrangement,
 } from '../../services/carService';
 import { LANGS, LANG_LABEL } from '../../constants/i18n';
@@ -40,7 +39,7 @@ const NEAR_CARDS = 2;
 // How long the scroll position must stay still before the active card changes (web).
 const SETTLE_MS = 120;
 // A card counts as "seen" once it has been the active card this long.
-const SEEN_AFTER_MS = 1500;
+const SEEN_AFTER_MS = 3000;
 
 export default function FeedScreen() {
   const insets = useSafeAreaInsets();
@@ -80,21 +79,17 @@ export default function FeedScreen() {
     };
   }, [seenReady, buildFeed, applyFeed]);
 
-  const filtersRef = useRef(filters);
-  useEffect(() => {
-    filtersRef.current = filters;
-  }, [filters]);
   const scrollY = useRef(0);
   const sizeRef = useRef(size);
   useEffect(() => {
     sizeRef.current = size;
   }, [size]);
 
-  // Refresh = reload the listings. With no filter applied the unseen ones come
-  // back in a new random order; with a filter applied the order is kept. Either
-  // way the feed returns to the top.
+  // Refresh = reload the listings and reshuffle the unseen ones. It happens on
+  // every pull / tab press, even with filters, so the top of the feed is always
+  // a fresh random pick. Already-seen listings never move back to the top.
   const reload = useCallback(async () => {
-    if (isDefaultFilters(filtersRef.current)) applyFeed(await buildFeed());
+    applyFeed(await buildFeed());
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [buildFeed, applyFeed]);
 

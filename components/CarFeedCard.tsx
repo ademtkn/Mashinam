@@ -38,8 +38,11 @@ import FeedVideo from './FeedVideo';
 import SeenDivider, { SEEN_DIVIDER_HEIGHT } from './SeenDivider';
 import SellerRow from './SellerRow';
 
-// Commons serves fixed thumbnail widths; a tiny one is plenty for the blurred fill.
+// Commons serves fixed thumbnail widths. A tiny one is plenty for the blurred
+// fill; the main photo only needs ~800 px on a phone, which loads much faster
+// than the original 1280 px file.
 const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
+const displayThumb = (uri: string) => uri.replace(/\/\d+px-/, '/800px-');
 
 const NATIVE_DRIVER = Platform.OS !== 'web';
 const DOUBLE_TAP_MS = 280;
@@ -182,7 +185,7 @@ function CarFeedCard({
               <View style={[StyleSheet.absoluteFill, !item.fullBleed && { bottom: height * 0.12 }]} pointerEvents="none">
                 <FeedVideo
                   sources={item.video}
-                  poster={item.uri}
+                  poster={displayThumb(item.uri)}
                   active={isActive && index === photoIndex}
                   muted={muted}
                   cover={item.fullBleed}
@@ -191,7 +194,7 @@ function CarFeedCard({
               </View>
             ) : (
               <Image
-                source={{ uri: item.uri }}
+                source={{ uri: displayThumb(item.uri) }}
                 style={[StyleSheet.absoluteFill, !item.fullBleed && { bottom: height * 0.12 }]}
                 contentFit={item.fullBleed ? 'cover' : 'contain'}
                 transition={250}
@@ -411,7 +414,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   videoBadgeText: { color: Colors.navy, fontSize: 11, fontWeight: '800' },
-  dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,20,38,0.35)' },
+  dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,20,38,0.18)' },
   credit: {
     position: 'absolute',
     left: 14,

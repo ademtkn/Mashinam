@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,15 +10,21 @@ import SignInSheet from '../components/SignInSheet';
 import DemoContactModal from '../components/DemoContactModal';
 
 export default function RootLayout() {
+  // iPad / Android tablets: keep the feed in a centred, phone-like column
+  // instead of stretching every 9:16 card across the whole screen.
+  const { width } = useWindowDimensions();
+  const nativeTablet = Platform.OS !== 'web' && width >= 700;
+
   return (
     <SafeAreaProvider>
       <LanguageProvider>
       <AuthProvider>
       <FavoritesProvider>
         <StatusBar style="light" />
-        {/* On desktop browsers, keep a phone-width column so the feed looks like the app. */}
-        <View style={styles.outer}>
-          <View style={styles.frame}>
+        {/* On desktop browsers and tablets, keep a phone-width column so the
+            feed looks like the app instead of a stretched web page. */}
+        <View style={[styles.outer, nativeTablet && styles.outerTablet]}>
+          <View style={[styles.frame, nativeTablet && styles.frameTablet]}>
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.navy } }} />
           </View>
         </View>
@@ -33,5 +39,7 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   outer: { flex: 1, backgroundColor: Platform.OS === 'web' ? '#050A14' : Colors.navy, alignItems: 'center' },
+  outerTablet: { backgroundColor: '#050A14' },
   frame: { flex: 1, width: '100%', maxWidth: Platform.OS === 'web' ? 460 : undefined, overflow: 'hidden' },
+  frameTablet: { maxWidth: 560 },
 });

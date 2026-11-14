@@ -1,6 +1,21 @@
 export type FuelType = 'Benzin' | 'Dizel' | 'Hibrit' | 'Gaz/Benzin' | 'Elektrik';
 export type Transmission = 'Otomatik' | 'Manuel';
-export type City = 'Bişkek' | 'Oş' | 'Karakol' | 'Celalabad' | 'Tokmok' | 'Narın' | 'Talas';
+export type City =
+  | 'Bişkek'
+  | 'Oş'
+  | 'Celalabad'
+  | 'Karakol'
+  | 'Tokmok'
+  | 'Narın'
+  | 'Talas'
+  | 'Batken'
+  | 'Kara-Balta'
+  | 'Kant'
+  | 'Cholpon-Ata'
+  | 'Uzgen'
+  | 'Bazar-Korgon'
+  | 'Sülüktü'
+  | 'Kızıl-Kiya';
 // Where the car was imported from. 'KG' = bought new locally / unknown.
 export type ImportSource = 'JP' | 'KR' | 'US' | 'DE' | 'RU' | 'CN' | 'KG';
 
@@ -51,6 +66,7 @@ export type PriceRangeId = 'all' | 'lt15' | '15to30' | 'gt30';
 
 export interface CarFilters {
   brand: string | null;
+  city: City | null;
   priceRange: PriceRangeId;
   onlyNew: boolean; // listed in the last 24 h, or price lowered
 }

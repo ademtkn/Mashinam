@@ -10,7 +10,6 @@ export interface User {
   name: string;
   phone: string; // digits only, e.g. 996502001903
   email?: string;
-  password: string; // kept locally for now; real auth comes with Supabase
   notifications: boolean; // price drops on favourites, new listings (phase 2)
 }
 
@@ -41,8 +40,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
-        // Accounts created before passwords/notifications existed get defaults.
-        if (raw) setUser({ password: '', notifications: true, ...(JSON.parse(raw) as Partial<User>) } as User);
+        if (!raw) return;
+        // Older builds stored a password field; it is ignored and never used.
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        const phone = typeof parsed.phone === 'string' ? parsed.phone : '';
+        if (!phone) return;
+        const user: User = {
+          name: typeof parsed.name === 'string' ? parsed.name : 'Mashinam',
+          phone,
+          email: typeof parsed.email === 'string' ? parsed.email : undefined,
+          notifications: typeof parsed.notifications === 'boolean' ? parsed.notifications : true,
+        };
+        setUser(user);
+        // Migrate old accounts: drop the legacy plaintext password from storage.
+        AsyncStorage.setItem(KEY, JSON.stringify(user)).catch(() => {});
       })
       .catch(() => {})
       .finally(() => setReady(true));
