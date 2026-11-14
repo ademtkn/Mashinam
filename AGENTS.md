@@ -92,6 +92,10 @@ Debug and release Android builds have been produced and tested on a physical Poc
 - Built a standalone **release** APK (34 MB, arm64) and installed it over the debug build; launched it with Metro
   stopped and verified the feed + tab navigation. The release build uses the generated debug keystore, so it is for
   local testing, not store distribution.
+- Cleanup pass: removed the unused DemoContactModal/DEMO_MODE path, `isDefaultFilters`, `daysAgo`, `orange`,
+  21 unused i18n keys (RU/KY/TR) and the unused `icon-512.png`. All 64 media files are referenced by the demo data.
+  No unused style keys remain. Verified with tsc/lint, a web smoke test (feed/sign-in/sell) and a rebuilt release
+  APK installed on the phone (feed + nav bar).
 - Release-only bug found and fixed: the main card photo stayed invisible because of `expo-image`'s
   `transition={250}` on the Android release build; removing the transition made 960 px photos render. Rebuilt,
   reinstalled and re-verified.

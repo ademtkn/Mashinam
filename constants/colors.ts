@@ -3,7 +3,6 @@ export const Colors = {
   navyLight: '#16223A',
   navySoft: '#1F2E4D',
   amber: '#FFB020',
-  orange: '#FF7A1A',
   whatsapp: '#25D366',
   white: '#FFFFFF',
   textMuted: 'rgba(255,255,255,0.72)',

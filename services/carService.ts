@@ -53,10 +53,6 @@ export function arrangeFeed(cars: Car[], seen: Map<string, number>, pinnedId?: s
 
 export const DEFAULT_FILTERS: CarFilters = { brand: null, city: null, priceRange: 'all', onlyNew: false };
 
-export function isDefaultFilters(f: CarFilters) {
-  return f.brand === null && f.city === null && f.priceRange === 'all' && !f.onlyNew;
-}
-
 export function getBrands(cars: Car[]): string[] {
   return Array.from(new Set(cars.map((c) => c.brand))).sort();
 }

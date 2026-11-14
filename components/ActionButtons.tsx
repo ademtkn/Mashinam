@@ -3,12 +3,10 @@ import { Alert, Animated, Linking, Platform, Pressable, Share, StyleSheet, Text,
 import * as Haptics from 'expo-haptics';
 import { MessageCircle, Phone } from 'lucide-react-native';
 import { Colors } from '../constants/colors';
-import { DEMO_MODE } from '../constants/config';
 import { translate, type Lang } from '../constants/i18n';
 import { useLang } from '../context/LanguageContext';
 import type { Car } from '../types/car';
 import { formatPrice } from '../utils/format';
-import { showDemoContact } from './DemoContactModal';
 
 export const SITE_URL = 'https://ademtkn.github.io/Mashinam';
 export const carUrl = (car: Car) => `${SITE_URL}/?car=${car.id}`;
@@ -30,13 +28,11 @@ export function openWhatsApp(car: Car, lang: Lang) {
   const digits = car.whatsappPhone.replace(/\D/g, '');
   const text = translate(lang, 'wa.message', { car: carTitle(car), price: formatPrice(car.priceUsd) });
   tap();
-  if (DEMO_MODE) return showDemoContact({ kind: 'whatsapp', car, message: text });
   open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`);
 }
 
 export function callSeller(car: Car) {
   tap();
-  if (DEMO_MODE) return showDemoContact({ kind: 'call', car, message: '' });
   open(`tel:${car.sellerPhone}`);
 }
 

@@ -74,8 +74,8 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   or dispatch a real mouse/touch event at its bounding box.
 
 ## Conventions & product decisions
-- Every seller phone number is the owner's test number **+996 502 00 19 03**; `DEMO_MODE` (constants/config.ts) is off so
-  WhatsApp/Call really open wa.me / tel:. Keep it that way until real listings exist.
+- Every seller phone number is the owner's test number **+996 502 00 19 03**; the old demo-contact preview was removed,
+  so WhatsApp/Call always open wa.me / tel:. Keep it that way until real listings exist.
 - UI languages: Russian (default), Kyrgyz, Turkish — `constants/i18n.ts`. Every new string goes into all three.
   The Kyrgyz strings were written by non-native speakers; the owner should review them.
 - **Accounts are one-step:** phone (+996) + WhatsApp OTP. No password, no e-mail in the form; name optional.
@@ -106,7 +106,7 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   `LegalScreen.tsx` · `LegalDocumentView.tsx` · `ConsentCheck.tsx` · `SeenDivider.tsx` · `SellerRow.tsx` ·
   `ActionButtons.tsx` (WhatsApp/call/share)
 - `constants/legal.ts` (RU/KY/TR privacy + terms, company X) · `constants/cities.ts` · `constants/config.ts`
-  (`DEMO_MODE`, `LOCAL_AUTH_DEMO`, `LISTING_LIFETIME_DAYS`, `ADMIN_CONTACTS`) · `constants/i18n.ts`
+  (`LOCAL_AUTH_DEMO`, `LISTING_LIFETIME_DAYS`, `ADMIN_CONTACTS`) · `constants/i18n.ts`
 - `context/` Auth, Favorites, Language · `hooks/` usePullToRefresh, useSeenCars · `utils/phone.ts` ·
   `services/carService.ts` (data access; swap for Supabase in phase 2)
 - `data/mockCars.ts`, `mockCars2.ts`, `videoCars.ts` (117 listings) · `public/media/` Pexels clips re-encoded to 720×1280
@@ -119,6 +119,10 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   9 Pexels video listings, 50 more Commons listings (117 total), 15-day lifetime, admin-only posting, device sign-in.
 - 2026-11-13 Card simplified (no accident/customs/owners labels), registration with e-mail+password, Profile tab
   (edit details, notifications toggle, sign out, delete account), guest encouragement. All live.
+- 2026-11-14 Cleanup: removed the unused DemoContactModal/DEMO_MODE path, `isDefaultFilters`, `daysAgo`, `orange`,
+  21 unused i18n keys in RU/KY/TR and the unused `icon-512.png`. All 64 `public/media` files are still referenced;
+  no unused style keys. `tsc`/lint pass, web smoke test (feed/sign-in/sell) and the rebuilt release APK on the phone
+  (feed + navy nav bar) verified.
 - 2026-11-14 Android device pass: built/installed the debug APK on a Poco X3 Pro (Android 12); verified feed,
   video, one-step phone + demo OTP sign-in, city modal/filter, sell form; fixed the white system navigation bar
   with `expo-navigation-bar` (`setStyle('dark')`, `enforceContrast: false`). MIUI install workaround documented.

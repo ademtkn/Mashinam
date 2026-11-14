@@ -4,7 +4,6 @@ import type { Lang } from '../constants/i18n';
 // Demo data is dated relative to "now" so "today's listings" never go stale.
 const LOADED_AT = Date.now();
 export const hoursAgo = (h: number) => new Date(LOADED_AT - h * 3600_000).toISOString();
-export const daysAgo = (d: number) => hoursAgo(d * 24);
 
 export const NEW_WINDOW_MS = 24 * 3600_000;
 

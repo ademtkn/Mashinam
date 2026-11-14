@@ -8,7 +8,6 @@ import { FavoritesProvider } from '../context/FavoritesContext';
 import { LanguageProvider } from '../context/LanguageContext';
 import { AuthProvider } from '../context/AuthContext';
 import SignInSheet from '../components/SignInSheet';
-import DemoContactModal from '../components/DemoContactModal';
 import { applyAndroidNavigationBar } from '../utils/navigationBar';
 
 export default function RootLayout() {
@@ -34,7 +33,6 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.navy } }} />
           </View>
         </View>
-        <DemoContactModal />
         <SignInSheet />
       </FavoritesProvider>
       </AuthProvider>
