@@ -71,7 +71,7 @@ Native config exists (bundle IDs, adaptive icon, splash) but no native build has
   listings spread to Batken, Cholpon-Ata, Kara-Balta, Uzgen.
 - **Feed:** every pull-to-refresh / tab press reshuffles unseen listings (even with filters); already-seen
   listings stay below the unseen ones; "seen" threshold 3 s. Tablet/web keeps a centred phone-like column.
-- **Perf/polish:** Commons main images requested at 800 px, lighter dim overlay, profile phone formatting,
+- **Perf/polish:** Commons main images requested at 960 px, lighter dim overlay, profile phone formatting,
   "Пользователь/Kullanıcı" default name.
 - **Verified locally:** `npx tsc --noEmit` and `npx expo lint` pass; web export; CDP-tested sign-in OTP, sell form
   preview, legal sheet, city filter, pull/tab refresh.

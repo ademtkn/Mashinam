@@ -38,11 +38,11 @@ import FeedVideo from './FeedVideo';
 import SeenDivider, { SEEN_DIVIDER_HEIGHT } from './SeenDivider';
 import SellerRow from './SellerRow';
 
-// Commons serves fixed thumbnail widths. A tiny one is plenty for the blurred
-// fill; the main photo only needs ~800 px on a phone, which loads much faster
-// than the original 1280 px file.
+// Commons serves only a few pre-generated widths (330/500/960/1280). 330 is
+// plenty for the blurred fill; 960 is sharp enough on a phone and ~35% smaller
+// than the original 1280 file. Do not use 800 — Commons returns HTTP 400.
 const smallThumb = (uri: string) => uri.replace(/\/\d+px-/, '/330px-');
-const displayThumb = (uri: string) => uri.replace(/\/\d+px-/, '/800px-');
+const displayThumb = (uri: string) => uri.replace(/\/\d+px-/, '/960px-');
 
 const NATIVE_DRIVER = Platform.OS !== 'web';
 const DOUBLE_TAP_MS = 280;

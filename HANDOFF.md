@@ -57,6 +57,7 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   `/legal/privacy`, `/legal/terms` from Profile.
 - Storage keys: `mashinam.user.v1`, `mashinam.favorites.v1.<phone>`, `mashinam.lang.v1`, `mashinam.seenCars.v1`.
 - `expo export` prints "Files (3)" but still copies `public/` into `dist/`; check `dist/media` exists (~39 MB).
+- Commons only serves the pre-generated widths **330 / 500 / 960 / 1280 px**; other widths (640/800/1024) return HTTP 400. `CarFeedCard` uses 330 for the blurred fill and 960 for the main photo.
 - CDP `.click()` on a leaf `Text` may not trigger a React Native `Pressable`. Click the `[role="button"]` element
   or dispatch a real mouse/touch event at its bounding box.
 
@@ -110,7 +111,7 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
   `expo-splash-screen`; one-step phone + WhatsApp OTP demo (no password/e-mail, legacy password purged); legal
   privacy/terms for company X + consent checkboxes and screens; structured admin WhatsApp listing form; 15-city
   KG-wide filter; every refresh reshuffles unseen cards and keeps seen ones below (3 s threshold); tablet/web
-  centred frame; 800 px Commons images; profile polish. `tsc`/lint pass; web export; CDP-tested sign-in, sell form,
+  centred frame; 960 px Commons images; profile polish. `tsc`/lint pass; web export; CDP-tested sign-in, sell form,
   legal sheet, city filter, pull/tab refresh. **Not published yet at the time of writing.**
 
 ## In progress / blocked
