@@ -92,6 +92,9 @@ Debug and release Android builds have been produced and tested on a physical Poc
 - Built a standalone **release** APK (34 MB, arm64) and installed it over the debug build; launched it with Metro
   stopped and verified the feed + tab navigation. The release build uses the generated debug keystore, so it is for
   local testing, not store distribution.
+- Release-only bug found and fixed: the main card photo stayed invisible because of `expo-image`'s
+  `transition={250}` on the Android release build; removing the transition made 960 px photos render. Rebuilt,
+  reinstalled and re-verified.
 - `package.json` scripts were switched by prebuild to `expo run:android` / `expo run:ios`.
 - Still warns: `expo-system-ui` is not installed, so the declarative `userInterfaceStyle` is not applied on Android;
   the app is visually dark regardless. Add it before relying on system dark-mode APIs.

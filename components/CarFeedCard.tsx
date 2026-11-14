@@ -197,7 +197,6 @@ function CarFeedCard({
                 source={{ uri: displayThumb(item.uri) }}
                 style={[StyleSheet.absoluteFill, !item.fullBleed && { bottom: height * 0.12 }]}
                 contentFit={item.fullBleed ? 'cover' : 'contain'}
-                transition={250}
                 cachePolicy="memory-disk"
               />
             )}

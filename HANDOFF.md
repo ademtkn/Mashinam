@@ -122,7 +122,8 @@ and drive it with Playwright + Chrome (`executablePath: /Applications/Google Chr
 - 2026-11-14 Android device pass: built/installed the debug APK on a Poco X3 Pro (Android 12); verified feed,
   video, one-step phone + demo OTP sign-in, city modal/filter, sell form; fixed the white system navigation bar
   with `expo-navigation-bar` (`setStyle('dark')`, `enforceContrast: false`). MIUI install workaround documented.
-  Built and verified a standalone release APK (34 MB, arm64) with Metro stopped.
+  Built and verified a standalone release APK (34 MB, arm64) with Metro stopped. Fixed a release-only bug where the
+  main card photo stayed invisible because of `expo-image`'s `transition={250}`; removing it restored 960 px photos.
 - 2026-11-14 Local app-first pass: navy/amber monogram icon + adaptive icon + splash (`tools/brand`); bundle IDs and
   `expo-splash-screen`; one-step phone + WhatsApp OTP demo (no password/e-mail, legacy password purged); legal
   privacy/terms for company X + consent checkboxes and screens; structured admin WhatsApp listing form; 15-city
